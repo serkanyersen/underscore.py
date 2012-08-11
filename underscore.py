@@ -17,24 +17,6 @@ class _oo():
     def __init__(self, obj):
         self.obj = obj
 
-    def isDict(self):
-        """
-        Check if given object is a dictionary
-        """
-        return type(self.obj) == type({})
-
-    def isTuple(self):
-        """
-        Check if given object is a Tuple
-        """
-        return type(self.obj) == type(())
-
-    def isList(self):
-        """
-        Check if given object is a list
-        """
-        return type(self.obj) == type([])
-
     def each(self, func):
         """
         iterates through each item of an object
@@ -304,6 +286,342 @@ class _oo():
     """
     Function functions
     """
+
+    """
+    Object Functions
+    """
+    def keys(self):
+        """
+        Retrieve the names of an object's properties.
+        """
+        return self.obj
+
+    def values(self):
+        """
+        Retrieve the values of an object's properties.
+        """
+        return self.obj
+
+    def functions(self):
+        """
+        Return a sorted list of the function names available on the object.
+        """
+        return self.obj
+    methods = functions
+
+    def extend(self, *args):
+        """
+        Extend a given object with all the properties in passed-in object(s).
+        """
+        return self.obj
+
+    def pick(self, *args):
+        """
+        Return a copy of the object only containing the whitelisted properties.
+        """
+        return self.obj
+
+    def defaults(self, *args):
+        """
+        Fill in a given object with default properties.
+        """
+        return self.obj
+
+    def clone(self):
+        """
+        Create a (shallow-cloned) duplicate of an object.
+        """
+        return self.obj
+
+    def tap(self, interceptor):
+        """
+        Invokes interceptor with the obj, and then returns obj.
+        The primary purpose of this method is to "tap into" a method chain, in
+        order to perform operations on intermediate results within the chain.
+        """
+        return self.obj
+
+    def isEqual(self, match):
+        """
+        Perform a deep comparison to check if two objects are equal.
+        """
+        return True
+
+    def isEmpty(self):
+        """
+        Is a given array, string, or object empty?
+        An "empty" object has no enumerable own-properties.
+        """
+        return True
+
+    def isElement(self):
+        """
+        No use in python
+        """
+        return False
+
+    def isDict(self):
+        """
+        Check if given object is a dictionary
+        """
+        return type(self.obj) == type({})
+
+    def isTuple(self):
+        """
+        Check if given object is a Tuple
+        """
+        return type(self.obj) == type(())
+
+    def isList(self):
+        """
+        Check if given object is a list
+        """
+        return type(self.obj) == type([])
+
+    def isNone(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isType(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isBoolean(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isInt(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isLong(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isFloat(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isComplex(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isString(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isUnicode(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isFunction(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isLambda(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isGenerator(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isCode(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isClass(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isInstance(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isMethod(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isUnboundMethod(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isBuiltinFunction(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isBuiltinMethod(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isModule(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isFile(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isXRange(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isSlice(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isEllipsis(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isTraceback(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isFrame(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isBuffer(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isDictProxy(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isNotImplemented(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isGetSetDescriptor(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+    def isMemberDescriptor(self):
+        """
+        Check if the given object is
+        """
+        return type(self.obj) == "<type ''>"
+
+        def isStringT(self):
+            """
+            Check if the given object is
+            """
+            return type(self.obj) == "<type ''>"
+
+    def has(self, key):
+        """
+        Shortcut function for checking if an object has a given property directly
+        on itself (in other words, not on a prototype).
+        """
+        return hasattr(self.obj, key)
+
+    def identity(self, value):
+        """
+        Keep the identity function around for default iterators.
+        """
+        return value
+
+    def times(self, n, func):
+        """
+        Run a function **n** times.
+        """
+        return self
+
+    def escape(self):
+        """
+        Escape a string for HTML interpolation.
+        """
+        return self.obj
+
+    def result(self, property):
+        """
+        If the value of the named property is a function then invoke it;
+        otherwise, return it.
+        """
+        return self.obj
+
+    def mixin(self, object):
+        """
+        Add your own custom functions to the Underscore object, ensuring that
+        they're correctly added to the OOP wrapper as well.
+        """
+        return self.obj
+
+    idCounter = 0
+
+    def uniqueId(self, prefix):
+        """
+        Generate a unique integer id (unique within the entire client session).
+        Useful for temporary DOM ids.
+        """
+        self.idCounter = self.idCounter + 1
+        id = self.idCounter
+        if prefix:
+            return prefix + id
+        else:
+            return id
 
     def value(self):
         """
