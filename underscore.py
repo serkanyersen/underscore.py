@@ -84,8 +84,10 @@ class _oo():
         """
         The right-associative version of reduce, also known as `foldr`.
         """
-        foldr = lambda f, i: lambda s: reduce(f, s, i)
-        return self._wrap(foldr(func, self.obj))
+        #foldr = lambda f, i: lambda s: reduce(f, s, i)
+        x = self.obj[:]
+        x.reverse()
+        return self._wrap(reduce(func, x))
     foldr = reduceRight
 
     def find(self, func):
