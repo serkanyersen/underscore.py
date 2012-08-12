@@ -43,5 +43,15 @@ print "Test ReduceRight"
 print _(["foo", "bar", "baz"]).reduceRight(lambda sum, num: sum + num)
 print "Test find"
 print _((4, 5, 2, 1, 6, 8)).find(lambda x, *args: x > 5)
+print "Test Filter"
+print _([4, 5, 2, 1, 6, 8]).filter(lambda x, *args: x > 4)
+print "Test Reject"
+print _((4, 5, 2, 1, 6, 8)).reject(lambda x, *args: x > 4)
+print "Test any"
+print "True:", _([False, False, True, False]).any()
+print "False:", _([False, False, False, False]).any()
+print "Test all"
+print "True:", _([True, True, True, True]).all()
+print "False:", _([False, False, True, False]).all()
 print "Test min:", _([2, 3, 4, 5]).min()
 print "Test max:", _.max([2, 1, 4, 5])

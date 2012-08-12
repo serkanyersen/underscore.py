@@ -1,6 +1,7 @@
 #/usr/bin/python
 import inspect
 from types import *
+from itertools import ifilterfalse
 #from itertools import imap
 
 
@@ -45,6 +46,16 @@ class _oo():
         """
         return _(self.obj)
 
+    def _toOriginal(self, val):
+        if self._clean.isTuple():
+            return tuple(val)
+        elif self._clean.isList():
+            return list(val)
+        elif self._clean.isDict():
+            return dict(val)
+        else:
+            return val
+
     """
     Collection Functions
     """
@@ -56,10 +67,14 @@ class _oo():
         """
         if self._clean.isTuple() or self._clean.isList():
             for index, value in enumerate(self.obj):
-                func(value, index, self.obj)
+                r = func(value, index, self.obj)
+                if r == "breaker":
+                    break
         else:
             for index, key in enumerate(self.obj):
-                func(self.obj[key], key, self.obj, index)
+                r = func(self.obj[key], key, self.obj, index)
+                if r == "breaker":
+                    break
         return self._wrap(self)
     forEach = each
 
@@ -94,54 +109,63 @@ class _oo():
         """
         Return the first value which passes a truth test. Aliased as `detect`.
         """
-        ret = None
+        self.ftmp = None
 
         def test(value, index, list):
             if func(value, index, list) == True:
-                global ret
-                ret = value
+                self.ftmp = value
                 return True
         self.any(test)
-        return self._wrap(ret)
+        return self._wrap(self.ftmp)
     detect = find
 
     def filter(self, func):
         """
         Return all the elements that pass a truth test.
         """
-        return self._wrap(self.obj)
+
+        return self._wrap(filter(func, self.obj))
     select = filter
 
     def reject(self, func):
         """
         Return all the elements for which a truth test fails.
         """
-        return self._wrap(self.obj)
+        r = ifilterfalse(func, self.obj)
+        return self._wrap(self._toOriginal(r))
 
-    def every(self, func):
+    def all(self, func=None):
         """
         Determine whether all of the elements match a truth test.
         """
-        return self._wrap(self.obj)
-    all = every
+        if func == None:
+            func = self.identity
+        self.altmp = True
 
-    def some(self, func=None):
+        def testEach(value, index, *args):
+            if func(value, index, *args) == False:
+                self.altmp = False
+
+        self.each(testEach)
+        return self._wrap(self.altmp)
+    every = all
+
+    def any(self, func=None):
         """
         Determine if at least one element in the object matches a truth test.
         """
         if func == None:
             func = self.identity
-        ret = False
+        self.antmp = False
 
         def testEach(value, index, *args):
-            global ret
             if func(value, index, *args) == True:
-                ret = True
+                self.antmp = True
                 return "breaker"
 
         self.each(testEach)
-        return self._wrap(ret)
-    any = some
+        return self._wrap(self.antmp)
+    some = any
 
     def include(self, target):
         """
@@ -706,11 +730,11 @@ class _oo():
         """
         return self._wrap(hasattr(self.obj, key))
 
-    def identity(self, value):
+    def identity(self, *args):
         """
         Keep the identity function around for default iterators.
         """
-        return self._wrap(value)
+        return self._wrap(args[0])
 
     def times(self, n, func):
         """
