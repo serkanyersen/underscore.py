@@ -287,9 +287,89 @@ class _oo():
     Function functions
     """
 
+    def bind(self, context):
+        """
+        Create a function bound to a given object (assigning `this`, and arguments,
+        optionally). Binding with arguments is also known as `curry`.
+        """
+        return self.obj
+    curry = bind
+
+    def bindAll(self, *args):
+        """
+        Bind all of an object's methods to that object. Useful for ensuring that
+        all callbacks defined on an object belong to it.
+        """
+        return self.obj
+
+    def memoize(self, hasher):
+        """
+        Memoize an expensive function by storing its results.
+        """
+        return self.obj
+
+    def delay(self, wait):
+        """
+        Delays a function for the given number of milliseconds, and then calls
+        it with the arguments supplied.
+        """
+        return self.obj
+
+    def defer(self):
+        """
+        Defers a function, scheduling it to run after the current call stack has
+        cleared.
+        """
+        return self.obj
+
+    def throttle(self, wait):
+        """
+        Returns a function, that, when invoked, will only be triggered at most once
+        during a given window of time.
+        """
+        return self.obj
+
+    def debounce(self, wait, immediate):
+        """
+        Returns a function, that, as long as it continues to be invoked, will not
+        be triggered. The function will be called after it stops being called for
+        N milliseconds. If `immediate` is passed, trigger the function on the
+        leading edge, instead of the trailing.
+        """
+        return self.obj
+
+    def once(self):
+        """
+        Returns a function that will be executed at most one time, no matter how
+        often you call it. Useful for lazy initialization.
+        """
+        return self.obj
+
+    def wrap(self, wrapper):
+        """
+        Returns the first function passed as an argument to the second,
+        allowing you to adjust arguments, run code before and after, and
+        conditionally execute the original function.
+        """
+        return self.obj
+
+    def compose(self, *args):
+        """
+        Returns a function that is the composition of a list of functions, each
+        consuming the return value of the function that follows.
+        """
+        return self.obj
+
+    def after(self, times):
+        """
+        Returns a function that will only be executed after being called N times.
+        """
+        return self.obj
+
     """
     Object Functions
     """
+
     def keys(self):
         """
         Retrieve the names of an object's properties.
@@ -623,6 +703,22 @@ class _oo():
         else:
             return id
 
+    def unescape(self):
+        """
+        Within an interpolation, evaluation, or escaping, remove HTML escaping
+        that had been previously added.
+        """
+        return self.obj
+
+    """
+    Template Code will be here
+    """
+    def chain(self):
+        """
+        Add a "chain" function, which will delegate to the wrapper.
+        """
+        return self
+
     def value(self):
         """
         returns the object instead of instance
@@ -645,40 +741,3 @@ class _oo():
 _oo.makeStatic()
 
 # The end
-
-# Tests and Usage
-if __name__ == '__main__':
-
-    # Test each for lists
-    def it(v, i, l):
-        print "index: ", i, " Value: ", v
-
-    c = _.each(("a", "b", "c"), it)     # Tuple
-    c = _.forEach(["d", "e", "f"], it)  # List also alias test
-
-    # Test each for Dicts
-    def that(v, k, l, i):
-        print k, ":", v, "- [", i, "]"
-
-    d = _({"aa": "aaVal", "bb": "bbVal", "cc": "ccVal"}).each(that)  # OO Way
-
-    # Some single handed methods (easy ones)
-    print "min:", _([2, 3, 4, 5]).min()
-    print "max:", _.max([2, 1, 4, 5])
-
-    # try map on Dicts
-    def isTrue(val, key):
-        if val == True:
-            return val
-        return None
-
-    print _({"a": True, "b": False, "c": True, "d": 1}).map(isTrue)
-
-    # Try map on lists
-    def biggerThan4(v):
-        if v > 4:
-            return v
-        return None
-
-    print _((4, 5, 2, 1, 6, 8)).map(biggerThan4)  # Tuple
-    print _([4, 5, 2, 1, 6, 8]).collect(biggerThan4)  # List also alias test
