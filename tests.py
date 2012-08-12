@@ -33,7 +33,13 @@ print _({"a": True, "b": False, "c": True, "d": 1}).map(isTrue)
 def biggerThan4(v):
     if v > 4:
         return v
-    return None
+    return 100
 
-print _((4, 5, 2, 1, 6, 8)).map(biggerThan4)  # Tuple
+print _((4, 5, 2, 1, 6, 8)).chain().map(biggerThan4).min().value()  # Tuple
 print _([4, 5, 2, 1, 6, 8]).collect(biggerThan4)  # List also alias test
+
+print "Test find"
+def biggerThan5(v, i, l):
+    return v > 5
+
+print _((4, 5, 2, 1, 6, 8)).find(biggerThan5)
