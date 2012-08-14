@@ -2,36 +2,76 @@
 import inspect
 from types import *
 from itertools import ifilterfalse
-#from itertools import imap
+from itertools import groupby
+from itertools import chain
 
 
-# underscore object
 def _(obj):
-    return _oo(obj)
+    """
+    _ function, which creates an instance of the underscore object,
+    We will also assign all methods of the underscore class as a method
+    to this function so that it will be usable as a static object
+    """
+    return underscore(obj)
 
 
-class _oo():
+class underscore():
+    """
+    Instead of creating a class named _ (underscore) I created underscore
+    So I can use _ function both statically and dynamically just it
+    is in the original underscore
+    """
 
     object = None
+    """
+    Passed object
+    """
 
-    VERSION = "0.1.1"
+    VERSION = "0.1.2"
+    """
+    Version of the library
+    """
 
     chained = False
+    """
+    If the object is in a chained state or not
+    """
+
     Null = "__Null__"
+    """
+    Since we are working with the native types of the library
+    I cannot compare any type with None, so I use a Substitute type for cheching
+    """
+
     _wrapped = Null
+    """
+    When object is in chained state, This property will contain the latest processed
+    Value of passed object, I assign it no Null so I can check against None results
+    """
+
+    def __init__(self, obj):
+        """
+        Let there be light
+        """
+        self.chained = False
+        self.object = obj
 
     @property
     def obj(self):
-        if self._wrapped != self.Null:
+        """
+        Returns passed object but if chain method is used
+        returns the last processed result
+        """
+        if self._wrapped is not self.Null:
             return self._wrapped
         else:
             return self.object
 
-    def __init__(self, obj):
-        self.chained = False
-        self.object = obj
-
     def _wrap(self, ret):
+        """
+        Returns result but ig chain method is used
+        returns the object itself so we can chain
+        """
         if self.chained:
             self._wrapped = ret
             return self
@@ -47,6 +87,9 @@ class _oo():
         return _(self.obj)
 
     def _toOriginal(self, val):
+        """
+        Pitty attempt to convert itertools result into a real object
+        """
         if self._clean.isTuple():
             return tuple(val)
         elif self._clean.isList():
@@ -68,12 +111,12 @@ class _oo():
         if self._clean.isTuple() or self._clean.isList():
             for index, value in enumerate(self.obj):
                 r = func(value, index, self.obj)
-                if r == "breaker":
+                if r is "breaker":
                     break
         else:
             for index, key in enumerate(self.obj):
                 r = func(self.obj[key], key, self.obj, index)
-                if r == "breaker":
+                if r is "breaker":
                     break
         return self._wrap(self)
     forEach = each
@@ -112,10 +155,10 @@ class _oo():
         self.ftmp = None
 
         def test(value, index, list):
-            if func(value, index, list) == True:
+            if func(value, index, list) is True:
                 self.ftmp = value
                 return True
-        self.any(test)
+        self._clean.any(test)
         return self._wrap(self.ftmp)
     detect = find
 
@@ -138,15 +181,15 @@ class _oo():
         """
         Determine whether all of the elements match a truth test.
         """
-        if func == None:
+        if func is None:
             func = self.identity
         self.altmp = True
 
         def testEach(value, index, *args):
-            if func(value, index, *args) == False:
+            if func(value, index, *args) is False:
                 self.altmp = False
 
-        self.each(testEach)
+        self._clean.each(testEach)
         return self._wrap(self.altmp)
     every = all
 
@@ -154,68 +197,92 @@ class _oo():
         """
         Determine if at least one element in the object matches a truth test.
         """
-        if func == None:
+        if func is None:
             func = self.identity
         self.antmp = False
 
         def testEach(value, index, *args):
-            if func(value, index, *args) == True:
+            if func(value, index, *args) is True:
                 self.antmp = True
                 return "breaker"
 
-        self.each(testEach)
+        self._clean.each(testEach)
         return self._wrap(self.antmp)
     some = any
 
     def include(self, target):
         """
-        Determine if a given value is included in the array or object using `===`.
+        Determine if a given value is included in the array or object using `is`.
         """
-        return True
+        if self._clean.isDict():
+            return self._wrap(target in self.obj.values())
+        else:
+            return self._wrap(target in self.obj)
     contains = include
 
-    def invoke(self, method):
+    def invoke(self, method, *args):
         """
         Invoke a method (with arguments) on every item in a collection.
         """
-        return self._wrap(self.obj)
+        def inv(value, *ar):
+            if(_(method).isFunction() or _(method).isLambda() or _(method).isMethod()):
+                return method(value, *args)
+            else:
+                return getattr(value, method)(*args)
+        return self._wrap(self._clean.map(inv))
 
     def pluck(self, key):
         """
         Convenience version of a common use case of `map`: fetching a property.
         """
-        return self._wrap(self.obj)
+        return self._wrap([x.get(key) for x in self.obj])
 
     def max(self):
         """
         Return the maximum element or (element-based computation).
         """
+        if(self._clean.isDict()):
+            return self._wrap(list())
         return self._wrap(max(self.obj))
 
     def min(self):
         """
         Return the minimum element (or element-based computation).
         """
+        if(self._clean.isDict()):
+            return self._wrap(list())
         return self._wrap(min(self.obj))
 
     def shuffle(self):
         """
         Shuffle an array.
         """
-        return self._wrap(self.obj)
+        if(self._clean.isDict()):
+            return self._wrap(list())
 
-    def sortBy(self, val):
+        cloned = self.obj[:]
+        import random
+        random.shuffle(cloned)
+        return self._wrap(cloned)
+
+    def sortBy(self, val=None):
         """
         Sort the object's values by a criterion produced by an iterator.
         """
-        return self._wrap(self.obj)
+        if val is not None:
+            if _(val).isString():
+                self._wrap(sorted(self.obj, key=lambda x: x.get(val)))
+            else:
+                return self._wrap(sorted(self.obj, val))
+        else:
+            return self._wrap(sorted(self.obj))
 
     def groupBy(self, val):
         """
         Groups the object's values by a criterion. Pass either a string attribute
         to group by, or a function that returns the criterion.
         """
-        return self._wrap(self.obj)
+        return self._wrap(self._toOriginal(groupby(self.obj, val)))
 
     def countBy(self, val):
         """
@@ -242,54 +309,63 @@ class _oo():
         """
         Return the number of elements in an object.
         """
-        return self._wrap(1)
+        return self._wrap(len(self.obj))
 
-    def first(self, n, guard):
+    def first(self, n=1):
         """
         Get the first element of an array. Passing **n** will return the first N
         values in the array. Aliased as `head` and `take`. The **guard** check
         allows it to work with `_.map`.
         """
-        return self._wrap(self.obj)
+        res = self.obj[0:n]
+        if len(res) is 1:
+            res = res[0]
+        return self._wrap(res)
     head = take = first
 
-    def initial(self, n, guard):
+    def initial(self, n=1):
         """
         Returns everything but the last entry of the array. Especially useful on
         the arguments object. Passing **n** will return all the values in
         the array, excluding the last N. The **guard** check allows it to work with
         `_.map`.
         """
-        return self._wrap(self.obj)
+        return self._wrap(self.obj[0:-n])
 
-    def last(self, n, guard):
+    def last(self, n=1):
         """
         Get the last element of an array. Passing **n** will return the last N
         values in the array. The **guard** check allows it to work with `_.map`.
         """
-        return self._wrap(self.obj)
+        res = self.obj[-n:-1]
+        if len(res) is 1:
+            res = res[0]
+        return self._wrap(res)
 
-    def rest(self, n, guard):
+    def rest(self, n=1):
         """
         Returns everything but the first entry of the array. Aliased as `tail`.
         Especially useful on the arguments object. Passing an **index** will return
         the rest of the values in the array from that index onward. The **guard**
         check allows it to work with `_.map`.
         """
-        return self._wrap(self.obj)
+        return self._wrap(self.obj[n:])
     tail = rest
 
     def compact(self):
         """
         Trim out all falsy values from an array.
         """
-        return self._wrap(self.obj)
+        return self._wrap(self._clean.filter(lambda x: x))
 
-    def flatten(self, shallow):
+    def flatten(self, shallow=None):
         """
         Return a completely flattened version of an array.
         """
-        return self._wrap(self.obj)
+        if(shallow is True):
+            return self._wrap(list(chain.from_iterable(self.obj)))
+        else:
+            return self._wrap(list(chain.from_iterable(self.obj)))  # Must do this recursively
 
     def without(self, values):
         """
@@ -522,206 +598,206 @@ class _oo():
         """
         Check if given object is a dictionary
         """
-        return self._wrap(type(self.obj) == DictType)
+        return self._wrap(type(self.obj) is DictType)
 
     def isTuple(self):
         """
         Check if given object is a Tuple
         """
-        return self._wrap(type(self.obj) == TupleType)
+        return self._wrap(type(self.obj) is TupleType)
 
     def isList(self):
         """
         Check if given object is a list
         """
-        return self._wrap(type(self.obj) == ListType)
+        return self._wrap(type(self.obj) is ListType)
 
     def isNone(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == NoneType)
+        return self._wrap(type(self.obj) is NoneType)
 
     def isType(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == TypeType)
+        return self._wrap(type(self.obj) is TypeType)
 
     def isBoolean(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == BooleanType)
+        return self._wrap(type(self.obj) is BooleanType)
     isBool = isBoolean
 
     def isInt(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == IntType)
+        return self._wrap(type(self.obj) is IntType)
 
     def isLong(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == LongType)
+        return self._wrap(type(self.obj) is LongType)
 
     def isFloat(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == FloatType)
+        return self._wrap(type(self.obj) is FloatType)
 
     def isComplex(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == ComplexType)
+        return self._wrap(type(self.obj) is ComplexType)
 
     def isString(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == StringType)
+        return self._wrap(type(self.obj) is StringType)
 
     def isUnicode(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == UnicodeType)
+        return self._wrap(type(self.obj) is UnicodeType)
 
     def isFunction(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == FunctionType)
+        return self._wrap(type(self.obj) is FunctionType)
 
     def isLambda(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == LambdaType)  # or type(self.obj) == FunctionType)
+        return self._wrap(type(self.obj) is LambdaType)  # or type(self.obj) is FunctionType)
 
     def isGenerator(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == GeneratorType)
+        return self._wrap(type(self.obj) is GeneratorType)
 
     def isCode(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == CodeType)
+        return self._wrap(type(self.obj) is CodeType)
 
     def isClass(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == ClassType)
+        return self._wrap(type(self.obj) is ClassType)
 
     def isInstance(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == InstanceType)
+        return self._wrap(type(self.obj) is InstanceType)
 
     def isMethod(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == MethodType)
+        return self._wrap(type(self.obj) is MethodType)
 
     def isUnboundMethod(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == UnboundMethodType)
+        return self._wrap(type(self.obj) is UnboundMethodType)
 
     def isBuiltinFunction(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == BuiltinFunctionType)
+        return self._wrap(type(self.obj) is BuiltinFunctionType)
 
     def isBuiltinMethod(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == BuiltinMethodType)
+        return self._wrap(type(self.obj) is BuiltinMethodType)
 
     def isModule(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == ModuleType)
+        return self._wrap(type(self.obj) is ModuleType)
 
     def isFile(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == FileType)
+        return self._wrap(type(self.obj) is FileType)
 
     def isXRange(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == XRangeType)
+        return self._wrap(type(self.obj) is XRangeType)
 
     def isSlice(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == SliceType)
+        return self._wrap(type(self.obj) is SliceType)
 
     def isEllipsis(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == EllipsisType)
+        return self._wrap(type(self.obj) is EllipsisType)
 
     def isTraceback(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == TracebackType)
+        return self._wrap(type(self.obj) is TracebackType)
 
     def isFrame(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == FrameType)
+        return self._wrap(type(self.obj) is FrameType)
 
     def isBuffer(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == BufferType)
+        return self._wrap(type(self.obj) is BufferType)
 
     def isDictProxy(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == DictProxyType)
+        return self._wrap(type(self.obj) is DictProxyType)
 
     def isNotImplemented(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == NotImplementedType)
+        return self._wrap(type(self.obj) is NotImplementedType)
 
     def isGetSetDescriptor(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == GetSetDescriptorType)
+        return self._wrap(type(self.obj) is GetSetDescriptorType)
 
     def isMemberDescriptor(self):
         """
         Check if the given object is
         """
-        return self._wrap(type(self.obj) == MemberDescriptorType)
+        return self._wrap(type(self.obj) is MemberDescriptorType)
 
     def has(self, key):
         """
@@ -799,7 +875,7 @@ class _oo():
         returns the object instead of instance
         """
         print self.chained, self._wrapped
-        if self._wrapped != self.Null:
+        if self._wrapped is not self.Null:
             return self._wrapped
         else:
             return self.obj
@@ -807,16 +883,16 @@ class _oo():
     @staticmethod
     def makeStatic():
         """
-        Provide static access to _ object
+        Provide static access to underscore class
         """
-        for eachMethod in inspect.getmembers(_oo, predicate=inspect.ismethod):
+        for eachMethod in inspect.getmembers(underscore, predicate=inspect.ismethod):
             m = eachMethod[0]
             if not hasattr(_, m):
                 def caller(a):
-                    return lambda *args: getattr(_oo(args[0]), a)(*args[1:])
+                    return lambda *args: getattr(underscore(args[0]), a)(*args[1:])
                 _.__setattr__(m, caller(m))
 
 # Imediatelly create static object
-_oo.makeStatic()
+underscore.makeStatic()
 
 # The end
