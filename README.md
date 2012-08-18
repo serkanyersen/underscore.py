@@ -33,17 +33,17 @@ That's it
 ## Usage
 Import underscore to your project
 ```python
- from underscore import _
+from underscore import _
 ```
 Use it just like javascript version
 ```python
- # Dynamically
- _(["foo", "bar"]).invoke("upper")  # ["FOO", "BAR"]
- # or statically
- _.filter(["foo", "hello", "bar", "world"], lambda x, *args: len(x) > 3)  # ["hello", "world"]
- # Do chaining
- _([10, 48, 56, 30, 20]).chain().filter(lambda x, *args: x > 20).map(lambda x, *args: x * 2).sortBy().value()
- # [60, 96, 112]
+# Dynamically
+_(["foo", "bar"]).invoke("upper")  # ["FOO", "BAR"]
+# or statically
+_.filter(["foo", "hello", "bar", "world"], lambda x, *args: len(x) > 3)  # ["hello", "world"]
+# Do chaining
+_([10, 48, 56, 30, 20]).chain().filter(lambda x, *args: x > 20).map(lambda x, *args: x * 2).sortBy().value()
+# [60, 96, 112]
 ```
 
 For more information [underscorejs.org](http://underscorejs.org)
