@@ -1,11 +1,40 @@
-#/usr/bin/python
+#!/usr/bin/env python
 import inspect
 from types import *
 from itertools import ifilterfalse
 from itertools import groupby
 from itertools import chain
+import functools
 
 
+class __(object):
+    """
+    Use this class to alter __repr__ of
+    underscore object. So when you are using
+    it on your project it will make sense
+    """
+    def __init__(self, repr, func):
+        self._repr = repr
+        self._func = func
+        functools.update_wrapper(self, func)
+
+    def __call__(self, *args, **kw):
+        return self._func(*args, **kw)
+
+    def __repr__(self):
+        return self._repr(self._func)
+
+
+def u_withrepr(reprfun):
+    """
+    Decorator to rename a function
+    """
+    def _wrap(func):
+        return __(reprfun, func)
+    return _wrap
+
+
+@u_withrepr(lambda x: "<Underscore Object>")
 def _(obj):
     """
     _ function, which creates an instance of the underscore object,
@@ -55,6 +84,18 @@ class underscore():
         """
         self.chained = False
         self.object = obj
+
+    def __str__(self):
+        if self.chained is True:
+            return "Underscore chained instance"
+        else:
+            return "Underscore instance"
+
+    def __repr__(self):
+        if self.chained is True:
+            return "<Underscore chained instance>"
+        else:
+            return "<Underscore instance>"
 
     @property
     def obj(self):
