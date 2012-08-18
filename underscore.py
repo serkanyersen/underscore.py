@@ -271,7 +271,7 @@ class underscore():
         """
         if val is not None:
             if _(val).isString():
-                self._wrap(sorted(self.obj, key=lambda x: x.get(val)))
+                return self._wrap(sorted(self.obj, key=lambda x: x.get(val)))
             else:
                 return self._wrap(sorted(self.obj, val))
         else:
@@ -303,7 +303,7 @@ class underscore():
         """
         Safely convert anything iterable into a real, live array.
         """
-        return self._wrap(self.obj)
+        return self._wrap(list(self.obj))
 
     def size(self):
         """
@@ -337,7 +337,7 @@ class underscore():
         Get the last element of an array. Passing **n** will return the last N
         values in the array. The **guard** check allows it to work with `_.map`.
         """
-        res = self.obj[-n:-1]
+        res = self.obj[-n:]
         if len(res) is 1:
             res = res[0]
         return self._wrap(res)
@@ -483,6 +483,7 @@ class underscore():
         """
         return self._wrap(self.obj)
 
+    # https://gist.github.com/2871026
     def debounce(self, wait, immediate):
         """
         Returns a function, that, as long as it continues to be invoked, will not
@@ -874,7 +875,6 @@ class underscore():
         """
         returns the object instead of instance
         """
-        print self.chained, self._wrapped
         if self._wrapped is not self.Null:
             return self._wrapped
         else:
@@ -891,6 +891,8 @@ class underscore():
                 def caller(a):
                     return lambda *args: getattr(underscore(args[0]), a)(*args[1:])
                 _.__setattr__(m, caller(m))
+        # put the class itself as a parameter so that we can use it on outside
+        _.__setattr__("underscore", underscore)
 
 # Imediatelly create static object
 underscore.makeStatic()
