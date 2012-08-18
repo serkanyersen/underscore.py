@@ -5,8 +5,7 @@
     \__,_/_/ /_/\__,_/\___/_/  /____/\___/\____/_/   \___(_) .___/\__, /  
                                                           /_/    /____/   
 
-Underscore.py is a pyhton port of excellent javascript utility library
-underscore.js
+Underscore.py is a python port of excellent javascript library underscore.js
 
 For more information http://underscorejs.org
 source: https://github.com/documentcloud/underscore
