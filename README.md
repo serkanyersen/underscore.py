@@ -17,24 +17,30 @@ Underscore.py is a python port of excellent javascript library underscore.js
 
 ## Installing
 Clone this repository:
-`git clone git://github.com/serkanyersen/underscore.py.git`
+```bash
+git clone git://github.com/serkanyersen/underscore.py.git
+```
 Get into underscore.py directory
-`cd underscore.py`
+```bash
+cd underscore.py
+```
 Run setup script
-`sudo python setup.py install`
+```bash
+sudo python setup.py install
+```
 That's it
 
 ## Usage
 Import underscore to your project
 ```python
-    from underscore import _
+ from underscore import _
 ```
 Use it just like javascript version
 ```python
-    # Dynamically
-    _(["foo", "bar"]).invoke("upper")  # ["FOO", "BAR"]
-    # or statically
-    _.filter(["foo", "hello", "bar", "world"], lambda x, *args: len(x) > 3)  # ["hello", "world"]
+ # Dynamically
+ _(["foo", "bar"]).invoke("upper")  # ["FOO", "BAR"]
+ # or statically
+ _.filter(["foo", "hello", "bar", "world"], lambda x, *args: len(x) > 3)  # ["hello", "world"]
 ```
 
 For more information [underscorejs.org](http://underscorejs.org)
