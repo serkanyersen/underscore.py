@@ -10,10 +10,11 @@
 
 Underscore.py is a python port of excellent javascript library underscore.js
 
-From underscore page:
+**From underscore page:**
+    *Underscore.js is a utility-belt library for JavaScript that provides support for the usual functional
+    suspects (each, map, reduce, filter...) without extending any core JavaScript objects.*
 
-    Underscore.js is a utility-belt library for JavaScript that provides support for the usual functional
-    suspects (each, map, reduce, filter...) without extending any core JavaScript objects.
 
 For more information [underscorejs.org](http://underscorejs.org)
-source: [Underscore.js Github](https://github.com/documentcloud/underscore)
+
+Source: [Underscore.js on Github](https://github.com/documentcloud/underscore)
