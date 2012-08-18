@@ -40,9 +40,9 @@ Use it just like javascript version
 # Dynamically
 _(["foo", "bar"]).invoke("upper")  # ["FOO", "BAR"]
 # or statically
-_.filter(["foo", "hello", "bar", "world"], lambda x, *args: len(x) > 3)  # ["hello", "world"]
+_.filter(["foo", "hello", "bar", "world"], lambda x, *a: len(x) > 3)  # ["hello", "world"]
 # Do chaining
-_([10, 48, 56, 30, 20]).chain().filter(lambda x, *args: x > 20).map(lambda x, *args: x * 2).sortBy().value()
+_([10, 48, 56, 30, 20]).chain().filter(lambda x, *a: x > 20).map(lambda x, *a: x * 2).sortBy().value()
 # [60, 96, 112]
 ```
 
