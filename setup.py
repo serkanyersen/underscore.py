@@ -9,5 +9,5 @@ setup(name='underscore.py',
       author_email='serkanyersen@gmail.com',
       url='https://github.com/serkanyersen/underscore.py/',
       packages=['underscore'],
-      package_dir={'underscore': 'src/underscore'}
+      package_dir={'underscore': 'src'}
      )
