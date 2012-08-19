@@ -4,6 +4,7 @@ from types import *
 from itertools import ifilterfalse
 from itertools import groupby
 from itertools import chain
+import re
 import functools
 
 
@@ -904,6 +905,55 @@ class underscore():
     """
     Template Code will be here
     """
+    templateSettings = {
+        "evaluate":     r"<%([\s\S]+?)%>",
+        "interpolate":  r"<%=([\s\S]+?)%>",
+        "escape":       r"<%-([\s\S]+?)%>"
+    }
+
+    class Namespace:
+        pass
+
+    def template(self, src):
+        i = self.templateSettings.get('interpolate')
+        e = self.templateSettings.get('evaluate')
+        ns = self.Namespace()
+        ns.il = 1
+        source = ("  " * ns.il) + '__p = ""\n'
+
+        def interpolate(matchobj):
+            key = (matchobj.group(1).decode('string-escape')).strip()
+            return '" + (obj.get("' + key + '") or "") + "'
+
+        source += ("  " * ns.il) + '__p += ("' + re.sub(i, interpolate, ("%r" % src)) + '")\n'
+
+        def evaluate(matchobj):
+            code = (matchobj.group(1).decode('string-escape')).strip()
+            if code.startswith("end"):
+                ns.il -= 1
+                return '")\n' + ("  " * ns.il) + '__p += ("'
+            elif code.endswith(':'):
+                rep = '")\n' + ("  " * ns.il)
+                ns.il += 1
+                rep += code + "\n" + ("  " * ns.il) + '__p += ("'
+                return rep
+            else:
+                print "Errored code: " + code
+
+        source = re.sub(e, evaluate, source)
+        source += ("  " * ns.il) + 'return __p\n'
+        return self.create_function("obj={}", source)
+
+    def create_function(self, args, source):
+        source = "def func(" + args + "):\n" + source + "\n"
+        try:
+            code = compile(source, '', 'exec')
+            exec code
+        except:
+            print "Error Evaluating Code"
+            print source
+
+        return func
 
     def chain(self):
         """
