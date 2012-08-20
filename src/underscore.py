@@ -648,7 +648,8 @@ class underscore():
         """
         Create a (shallow-cloned) duplicate of an object.
         """
-        return self._wrap(self.obj)
+        import copy
+        return self._wrap(copy.copy(self.obj))
 
     def tap(self, interceptor):
         """
@@ -656,20 +657,27 @@ class underscore():
         The primary purpose of this method is to "tap into" a method chain, in
         order to perform operations on intermediate results within the chain.
         """
+        interceptor(self.obj)
         return self._wrap(self.obj)
 
     def isEqual(self, match):
         """
         Perform a deep comparison to check if two objects are equal.
         """
-        return self._wrap(True)
+        return self._wrap(self.obj is match)
 
     def isEmpty(self):
         """
         Is a given array, string, or object empty?
         An "empty" object has no enumerable own-properties.
         """
-        return self._wrap(True)
+        if self._clean.isString():
+            ret = self.obj.strip() is ""
+        elif self._clean.isDict():
+            ret = len(self.obj.keys()) > 0
+        else:
+            ret = len(self.obj) > 0
+        return self._wrap(ret)
 
     def isElement(self):
         """
