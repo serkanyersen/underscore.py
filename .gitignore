@@ -46,3 +46,4 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+run.py

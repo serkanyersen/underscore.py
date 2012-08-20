@@ -6,6 +6,15 @@ from itertools import groupby
 from itertools import chain
 import re
 import functools
+import cgi
+
+
+class _IdCounter:
+    """
+    A Global Dictionary for uniq IDs
+    """
+    count = 0
+    pass
 
 
 class __(object):
@@ -78,6 +87,12 @@ class underscore():
     When object is in chained state, This property will contain the latest processed
     Value of passed object, I assign it no Null so I can check against None results
     """
+
+    class Namespace:
+        """
+        For simulating full closure support
+        """
+        pass
 
     def __init__(self, obj):
         """
@@ -208,7 +223,6 @@ class underscore():
         """
         Return all the elements that pass a truth test.
         """
-
         return self._wrap(filter(func, self.obj))
     select = filter
 
@@ -224,7 +238,7 @@ class underscore():
         Determine whether all of the elements match a truth test.
         """
         if func is None:
-            func = self.identity
+            func = lambda x, *args: x
         self.altmp = True
 
         def testEach(value, index, *args):
@@ -240,7 +254,7 @@ class underscore():
         Determine if at least one element in the object matches a truth test.
         """
         if func is None:
-            func = self.identity
+            func = lambda x, *args: x
         self.antmp = False
 
         def testEach(value, index, *args):
@@ -409,19 +423,37 @@ class underscore():
         else:
             return self._wrap(list(chain.from_iterable(self.obj)))  # Must do this recursively
 
-    def without(self, values):
+    def without(self, *values):
         """
         Return a version of the array that does not contain the specified value(s).
         """
-        return self._wrap(self.obj)
+        if self._clean.isDict():
+            newlist = {}
+            for i, k in  enumerate(self.obj):
+                if k not in values:
+                    newlist.set(k, self.obj[k])
+        else:
+            newlist = []
+            for i, v in  enumerate(self.obj):
+                if v not in values:
+                    newlist.append(v)
 
-    def uniq(self, isSorted, iterator):
+        return self._wrap(newlist)
+
+    def uniq(self, isSorted=False, iterator=None):
         """
         Produce a duplicate-free version of the array. If the array has already
         been sorted, you have the option of using a faster algorithm.
         Aliased as `unique`.
         """
-        return self._wrap(self.obj)
+        seq = self.obj
+        if iterator is not None:
+            seq = _(seq).map(iterator)
+
+        seen = set()
+        seen_add = seen.add
+        ret = [x for x in seq if x not in seen and not seen_add(x)]
+        return self._wrap(ret)
     unique = uniq
 
     def union(self, *args):
@@ -571,25 +603,33 @@ class underscore():
         """
         Retrieve the names of an object's properties.
         """
-        return self._wrap(self.obj)
+        return self._wrap(self.obj.keys())
 
     def values(self):
         """
         Retrieve the values of an object's properties.
         """
-        return self._wrap(self.obj)
+        return self._wrap(self.obj.values())
 
     def functions(self):
         """
         Return a sorted list of the function names available on the object.
         """
-        return self._wrap(self.obj)
+        return self._wrap(self._clean.filter(lambda k, v, *args: type(v) is MethodType \
+                                                              or type(v) is FunctionType \
+                                                              or type(v) is LambdaType \
+                                                              or type(v) is BuiltinMethodType \
+                                                              or type(v) is BuiltinFunctionType\
+                                                              or type(v) is UnboundMethodType))
     methods = functions
 
     def extend(self, *args):
         """
         Extend a given object with all the properties in passed-in object(s).
         """
+        for i in args:
+            self.obj.update(args[i])
+
         return self._wrap(self.obj)
 
     def pick(self, *args):
@@ -853,19 +893,26 @@ class underscore():
         """
         Keep the identity function around for default iterators.
         """
-        return self._wrap(args[0])
+        return self._wrap(self.obj)
 
-    def times(self, n, func):
+    def times(self, func, *args):
         """
         Run a function **n** times.
         """
-        return self._wrap(self.obj)
+        n = self.obj
+        i = 0
+        while n is not 0:
+            n -= 1
+            func(i)
+            i += 1
+
+        return self._wrap(func)
 
     def escape(self):
         """
         Escape a string for HTML interpolation.
         """
-        return self._wrap(self.obj)
+        return self._wrap(cgi.escape(self.obj))
 
     def result(self, property):
         """
@@ -874,24 +921,27 @@ class underscore():
         """
         return self._wrap(self.obj)
 
-    def mixin(self, object):
+    def mixin(self):
         """
         Add your own custom functions to the Underscore object, ensuring that
         they're correctly added to the OOP wrapper as well.
         """
+        methods = self.obj
+        for i, k in enumerate(methods):
+            setattr(underscore, k, methods[k])
+
+        self.makeStatic()
         return self._wrap(self.obj)
 
-    idCounter = 0
-
-    def uniqueId(self, prefix):
+    def uniqueId(self, prefix=""):
         """
         Generate a unique integer id (unique within the entire client session).
         Useful for temporary DOM ids.
         """
-        self.idCounter = self.idCounter + 1
-        id = self.idCounter
+        _IdCounter.count += 1
+        id = _IdCounter.count
         if prefix:
-            return self._wrap(prefix + id)
+            return self._wrap(prefix + str(id))
         else:
             return self._wrap(id)
 
@@ -905,55 +955,70 @@ class underscore():
     """
     Template Code will be here
     """
+
     templateSettings = {
         "evaluate":     r"<%([\s\S]+?)%>",
         "interpolate":  r"<%=([\s\S]+?)%>",
         "escape":       r"<%-([\s\S]+?)%>"
     }
 
-    class Namespace:
-        pass
-
-    def template(self, src):
-        i = self.templateSettings.get('interpolate')
-        e = self.templateSettings.get('evaluate')
+    def template(self, settings={}):
+        """
+        Python micro-templating, similar to John Resig's implementation.
+        Underscore templating handles arbitrary delimiters, preserves whitespace,
+        and correctly escapes quotes within interpolated code.
+        """
+        # settings = _.defaults(settings, self.templateSettings)
+        settings = {
+            "interpolate": self.templateSettings.get('interpolate'),
+            "evaluate": self.templateSettings.get('evaluate')
+        }
+        src = self.obj
         ns = self.Namespace()
-        ns.il = 1
-        source = ("  " * ns.il) + '__p = ""\n'
+        ns.indent_level = 1
+
+        def indent(n=None):
+            if n is not None:
+                ns.indent_level += n
+            return "  " * ns.indent_level
 
         def interpolate(matchobj):
             key = (matchobj.group(1).decode('string-escape')).strip()
-            return '" + (obj.get("' + key + '") or "") + "'
-
-        source += ("  " * ns.il) + '__p += ("' + re.sub(i, interpolate, ("%r" % src)) + '")\n'
+            return '" + str(' + key + ') + "'
 
         def evaluate(matchobj):
             code = (matchobj.group(1).decode('string-escape')).strip()
             if code.startswith("end"):
-                ns.il -= 1
-                return '")\n' + ("  " * ns.il) + '__p += ("'
+                return '")\n' + indent(-1) + '__p += ("'
             elif code.endswith(':'):
-                rep = '")\n' + ("  " * ns.il)
-                ns.il += 1
-                rep += code + "\n" + ("  " * ns.il) + '__p += ("'
-                return rep
+                return '")\n' + indent() + code + "\n" + indent(+1) + '__p += ("'
             else:
-                print "Errored code: " + code
+                return '")\n' + indent() + code + "\n" + indent() + '__p += ("'
 
-        source = re.sub(e, evaluate, source)
-        source += ("  " * ns.il) + 'return __p\n'
+        source = indent() + '__p = ""\n'
+        source += indent() + '__p += ("' + re.sub(settings.get('interpolate'), interpolate, ("%r" % src)) + '")\n'
+        source = re.sub(settings.get('evaluate'), evaluate, source)
+        source += indent() + 'return __p\n'
         return self.create_function("obj={}", source)
 
     def create_function(self, args, source):
         source = "def func(" + args + "):\n" + source + "\n"
+        ns = self.Namespace()
         try:
             code = compile(source, '', 'exec')
-            exec code
+            exec code in globals(), locals()
         except:
             print "Error Evaluating Code"
             print source
+        ns.func = func
 
-        return func
+        def _wrap(obj):
+            for i, k in enumerate(obj):
+                ns.func.func_globals[k] = obj[k]
+            return ns.func(obj)
+
+        _wrap.source = source
+        return _wrap
 
     def chain(self):
         """
@@ -980,7 +1045,16 @@ class underscore():
             m = eachMethod[0]
             if not hasattr(_, m):
                 def caller(a):
-                    return lambda *args: getattr(underscore(args[0]), a)(*args[1:])
+                    def execute(*args):
+                        if len(args) == 1:
+                            r = getattr(underscore(args[0]), a)()
+                        elif len(args) > 1:
+                            rargs = args[1:]
+                            r = getattr(underscore(args[0]), a)(*rargs)
+                        else:
+                            r = getattr(underscore([]), a)()
+                        return r
+                    return execute
                 _.__setattr__(m, caller(m))
         # put the class itself as a parameter so that we can use it on outside
         _.__setattr__("underscore", underscore)

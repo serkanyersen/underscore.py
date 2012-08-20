@@ -1,7 +1,7 @@
 import unittest
 from unittesthelper import init
 init()  # will let you import modules from upper folder
-from underscore import _
+from src.underscore import _
 
 
 class TestStructure(unittest.TestCase):
@@ -175,6 +175,29 @@ class TestStructure(unittest.TestCase):
         res = _([False, 1, 0, "foo", None, -1]).compact()
         self.assertEqual([1, "foo", -1], res, "compact did not work")
 
+    def test_without(self):
+        tlist = [1, 2, 1, 0, 3, 1, 4]
+        self.assertEqual([2, 3, 4], _.without(tlist, 0, 1), 'can remove all instances of an object')
+
+        tlist = [{"one": 1}, {"two": 2}]
+        # TODO: Get back to this
+        # self.assertTrue(len(_.without(tlist, {"one": 1})) == 2, 'uses real object identity for comparisons.')
+        self.assertTrue(len(_.without(tlist, tlist[0])) == 1, 'ditto.')
+
+    def test_uniq(self):
+        tlist = [1, 2, 1, 3, 1, 4]
+        self.assertEqual([1, 2, 3, 4], _.uniq(tlist), 'can find the unique values of an unsorted array')
+
+        tlist = [1, 1, 1, 2, 2, 3]
+        self.assertEqual([1, 2, 3], _.uniq(tlist, True), 'can find the unique values of a sorted array faster')
+
+        # tlist = [{"name": 'moe'}, {"name": 'curly'}, {"name": 'larry'}, {"name": 'curly'}]
+        # iterator = lambda value: value.get('name')
+        # self.assertEqual(["moe", "curly", "larry"], _.map(_.uniq(tlist, False, iterator), iterator), 'can find the unique values of an array using a custom iterator')
+
+        # iterator = lambda value: value + 1
+        # tlist = [1, 2, 2, 3, 4, 4]
+        # self.assertEqual([1, 2, 3, 4], _.uniq(tlist, True, iterator), 'iterator works with sorted array')
 
 if __name__ == "__main__":
     print "run these tests by executing `python -m unittest discover` in unittests folder"
