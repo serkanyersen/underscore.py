@@ -2,11 +2,11 @@
 import inspect
 from types import *
 from itertools import ifilterfalse
-from itertools import groupby
 from itertools import chain
 import re
 import functools
 import cgi
+from sets import Set
 
 
 class _IdCounter:
@@ -182,17 +182,36 @@ class underscore():
         """
         Return the results of applying the iterator to each element.
         """
-        if self._clean.isDict():
-            return self._wrap(map(lambda k: func(self.obj[k], k), self.obj))
-        else:
-            return self._wrap(map(lambda v: func(v), self.obj))
+        ns = self.Namespace()
+        ns.results = []
+
+        def by(value, index, list, *args):
+            ns.results.append(func(value, index, list))
+
+        _(self.obj).each(by)
+        return self._wrap(ns.results)
     collect = map
 
-    def reduce(self, func):
+    def reduce(self, func, memo=None):
         """
         **Reduce** builds up a single result from a list of values, aka `inject`, or foldl
         """
-        return self._wrap(reduce(func, self.obj))
+        if memo is None:
+            memo = []
+        ns = self.Namespace()
+        ns.initial = True  # arguments.length > 2
+        ns.memo = memo
+        obj = self.obj
+
+        def by(value, index, *args):
+            if not ns.initial:
+                ns.memo = value
+                ns.initial = True
+            else:
+                ns.memo = func(ns.memo, value, index)
+
+        _(obj).each(by)
+        return self._wrap(ns.memo)
     foldl = inject = reduce
 
     def reduceRight(self, func):
@@ -327,18 +346,48 @@ class underscore():
         """
         if val is not None:
             if _(val).isString():
-                return self._wrap(sorted(self.obj, key=lambda x: x.get(val)))
+                return self._wrap(sorted(self.obj, key=lambda x, *args: x.get(val)))
             else:
                 return self._wrap(sorted(self.obj, val))
         else:
             return self._wrap(sorted(self.obj))
+
+    def _lookupIterator(self, obj, val):
+        """
+        An internal function to generate lookup iterators.
+        """
+        return val if _.isCallable(val) else lambda obj, *args: obj[val]
+
+    def _group(self, obj, val, behavior):
+        """
+        An internal function used for aggregate "group by" operations.
+        """
+        ns = self.Namespace()
+        ns.result = {}
+        iterator = self._lookupIterator(obj, val)
+
+        def e(value, index, *args):
+            key = iterator(value, index)
+            behavior(ns.result, key, value)
+
+        _.each(obj, e)
+
+        return ns.result
 
     def groupBy(self, val):
         """
         Groups the object's values by a criterion. Pass either a string attribute
         to group by, or a function that returns the criterion.
         """
-        return self._wrap(self._toOriginal(groupby(self.obj, val)))
+
+        def by(result, key, value):
+            if key not in result:
+                result[key] = []
+            result[key].append(value)
+
+        res = self._group(self.obj, val, by)
+
+        return self._wrap(res)
 
     def countBy(self, val):
         """
@@ -346,14 +395,32 @@ class underscore():
         either a string attribute to count by, or a function that returns the
         criterion.
         """
-        return self._wrap(self.obj)
 
-    def sortedIndex(self, func):
+        def by(result, key, value):
+            if key not in result:
+                result[key] = 0
+            result[key] += 1
+
+        res = self._group(self.obj, val, by)
+
+        return self._wrap(res)
+
+    def sortedIndex(self, obj, iterator=lambda x: x):
         """
         Use a comparator function to figure out the smallest index at which
         an object should be inserted so as to maintain order. Uses binary search.
         """
-        return self._wrap(self.obj)
+        array = self.obj
+        value = iterator(obj)
+        low = 0
+        high = len(array)
+        while low < high:
+            mid = (low + high) >> 1
+            if iterator(array[mid]) < value:
+                low = mid + 1
+            else:
+                high = mid
+        return self._wrap(low)
 
     def toArray(self):
         """
@@ -429,12 +496,12 @@ class underscore():
         """
         if self._clean.isDict():
             newlist = {}
-            for i, k in  enumerate(self.obj):
+            for i, k in enumerate(self.obj):
                 if k not in values:
                     newlist.set(k, self.obj[k])
         else:
             newlist = []
-            for i, v in  enumerate(self.obj):
+            for i, v in enumerate(self.obj):
                 if v not in values:
                     newlist.append(v)
 
@@ -446,14 +513,26 @@ class underscore():
         been sorted, you have the option of using a faster algorithm.
         Aliased as `unique`.
         """
-        seq = self.obj
+        ns = self.Namespace()
+        ns.results = []
+        ns.array = self.obj
+        initial = self.obj
         if iterator is not None:
-            seq = _(seq).map(iterator)
+            initial = _(ns.array).map(iterator)
 
-        seen = set()
-        seen_add = seen.add
-        ret = [x for x in seq if x not in seen and not seen_add(x)]
+        def by(memo, value, index):
+            if (_.last(memo) != value or not len(memo)) if isSorted else not _.include(memo, value):
+                memo.append(value)
+                ns.results.append(ns.array[index])
+
+            return memo
+
+        ret = _.reduce(initial, by)
         return self._wrap(ret)
+        # seen = set()
+        # seen_add = seen.add
+        # ret = [x for x in seq if x not in seen and not seen_add(x)]
+        # return self._wrap(ret)
     unique = uniq
 
     def union(self, *args):
@@ -461,35 +540,63 @@ class underscore():
         Produce an array that contains the union: each distinct element from all of
         the passed-in arrays.
         """
-        return self._wrap(self.obj)
+        setobj = Set(self.obj)
+        for i, v in enumerate(args):
+            setobj = setobj.union(args[i])
+        return self._wrap(self._clean._toOriginal(setobj))
 
     def intersection(self, *args):
         """
         Produce an array that contains every item shared between all the
         passed-in arrays.
         """
-        return self._wrap(self.obj)
+        a = tuple(self.obj[0])
+        setobj = Set(a)
+        for i, v in enumerate(args):
+            setobj = setobj.intersection(args[i])
+        return self._wrap(list(setobj))
 
     def difference(self, *args):
         """
         Take the difference between one array and a number of other arrays.
         Only the elements present in just the first array will remain.
         """
-        return self._wrap(self.obj)
+        setobj = Set(self.obj)
+        for i, v in enumerate(args):
+            setobj = setobj.difference(args[i])
+        return self._wrap(self._clean._toOriginal(setobj))
 
     def zip(self, *args):
         """
         Zip together multiple lists into a single array -- elements that share
         an index go together.
         """
-        return self._wrap(self.obj)
+        args = list(args)
+        args.insert(0, self.obj)
+        maxLen = _(args).chain().collect(lambda x, *args: len(x)).max().value()
+        for i, v in enumerate(args):
+            l = len(args[i])
+            if l < maxLen:
+                args[i]
+            for x in range(maxLen - l):
+                args[i].append(None)
+        return self._wrap(zip(*args))
 
-    def zipObject(self, *args):
+    def zipObject(self, values):
         """
         Zip together two arrays -- an array of keys and an array of values -- into
         a single object.
         """
-        return self._wrap(self.obj)
+        result = {}
+        keys = self.obj
+        i = 0
+        l = len(keys)
+        while i < l:
+            result[keys[i]] = values[i]
+            l = len(keys)
+            i += 1
+
+        return self._wrap(result)
 
     def indexOf(self, str):
         """
@@ -758,6 +865,17 @@ class underscore():
         """
         return self._wrap(type(self.obj) is UnicodeType)
 
+    def isCallable(self):
+        """
+        Check if the given object is any of the function types
+        """
+        return self._wrap(type(self.obj) is MethodType \
+                       or type(self.obj) is FunctionType \
+                       or type(self.obj) is LambdaType \
+                       or type(self.obj) is BuiltinMethodType \
+                       or type(self.obj) is BuiltinFunctionType\
+                       or type(self.obj) is UnboundMethodType)
+
     def isFunction(self):
         """
         Check if the given object is
@@ -896,6 +1014,13 @@ class underscore():
         on itself (in other words, not on a prototype).
         """
         return self._wrap(hasattr(self.obj, key))
+
+    def join(self, glue=" "):
+        """
+        Javascript's join implementation
+        """
+        j = glue.join([str(x) for x in self.obj])
+        return self._wrap(j)
 
     def identity(self, *args):
         """

@@ -49,3 +49,8 @@ _([10, 48, 56, 30, 20]).chain().filter(lambda x, *a: x > 20).map(lambda x, *a: x
 For more information [underscorejs.org](http://underscorejs.org)
 
 Source: [Underscore.js on Github](https://github.com/documentcloud/underscore)
+
+### Disclaimer
+Please keep in mind that this is just a port of a javascript library, please don't get started with
+the "but it's not pythonic" stuff. This library has no intentions to be pythonic, infact it tries to
+bring same underscore experience from javascript to python
