@@ -5,7 +5,6 @@ from itertools import ifilterfalse
 from itertools import chain
 import re
 import functools
-import cgi
 from sets import Set
 
 
@@ -481,14 +480,30 @@ class underscore():
         """
         return self._wrap(self._clean.filter(lambda x: x))
 
+    def _flatten(self, input, shallow=False, output=None):
+        ns = self.Namespace()
+        ns.output = output
+        if ns.output is None:
+            ns.output = []
+
+        def by(value, *args):
+            if _.isList(value) or _.isTuple(value):
+                if shallow:
+                    ns.output = ns.output + value
+                else:
+                    self._flatten(value, shallow, ns.output)
+            else:
+                ns.output.append(value)
+
+        _.each(input, by)
+
+        return ns.output
+
     def flatten(self, shallow=None):
         """
         Return a completely flattened version of an array.
         """
-        if(shallow is True):
-            return self._wrap(list(chain.from_iterable(self.obj)))
-        else:
-            return self._wrap(list(chain.from_iterable(self.obj)))  # Must do this recursively
+        return self._wrap(self._flatten(self.obj, shallow))
 
     def without(self, *values):
         """
@@ -540,10 +555,13 @@ class underscore():
         Produce an array that contains the union: each distinct element from all of
         the passed-in arrays.
         """
-        setobj = Set(self.obj)
-        for i, v in enumerate(args):
-            setobj = setobj.union(args[i])
-        return self._wrap(self._clean._toOriginal(setobj))
+        # setobj = Set(self.obj)
+        # for i, v in enumerate(args):
+        #     setobj = setobj.union(args[i])
+        # return self._wrap(self._clean._toOriginal(setobj))
+        args = list(args)
+        args.insert(0, self.obj)
+        return self._wrap(_.uniq(self._flatten(args, True, [])))
 
     def intersection(self, *args):
         """
@@ -722,12 +740,7 @@ class underscore():
         """
         Return a sorted list of the function names available on the object.
         """
-        return self._wrap(self._clean.filter(lambda k, v, *args: type(v) is MethodType \
-                                                              or type(v) is FunctionType \
-                                                              or type(v) is LambdaType \
-                                                              or type(v) is BuiltinMethodType \
-                                                              or type(v) is BuiltinFunctionType\
-                                                              or type(v) is UnboundMethodType))
+        return self._wrap(self._clean.filter(lambda k, v, *args: _(v).isCallable()))
     methods = functions
 
     def extend(self, *args):
@@ -743,7 +756,15 @@ class underscore():
         """
         Return a copy of the object only containing the whitelisted properties.
         """
-        return self._wrap(self.obj)
+        ns = self.Namespace()
+        ns.result = {}
+
+        def by(key, *args):
+            if key in self.obj:
+                ns.result[key] = self.obj[key]
+
+        _.each(self._flatten(args, True, []), by)
+        return self._wrap(ns.result)
 
     def defaults(self, *args):
         """
@@ -771,7 +792,7 @@ class underscore():
         """
         Perform a deep comparison to check if two objects are equal.
         """
-        return self._wrap(self.obj is match)
+        return self._wrap(self.obj == match)
 
     def isEmpty(self):
         """
@@ -794,74 +815,74 @@ class underscore():
 
     def isDict(self):
         """
-        Check if given object is a dictionary
+        Check if given object is a dictionary DictType
         """
         return self._wrap(type(self.obj) is DictType)
 
     def isTuple(self):
         """
-        Check if given object is a Tuple
+        Check if given object is a Tuple TupleType
         """
         return self._wrap(type(self.obj) is TupleType)
 
     def isList(self):
         """
-        Check if given object is a list
+        Check if given object is a list ListType
         """
         return self._wrap(type(self.obj) is ListType)
 
     def isNone(self):
         """
-        Check if the given object is
+        Check if the given object is NoneType
         """
         return self._wrap(type(self.obj) is NoneType)
 
     def isType(self):
         """
-        Check if the given object is
+        Check if the given object is TypeType
         """
         return self._wrap(type(self.obj) is TypeType)
 
     def isBoolean(self):
         """
-        Check if the given object is
+        Check if the given object is BooleanType
         """
         return self._wrap(type(self.obj) is BooleanType)
     isBool = isBoolean
 
     def isInt(self):
         """
-        Check if the given object is
+        Check if the given object is IntType
         """
         return self._wrap(type(self.obj) is IntType)
 
     def isLong(self):
         """
-        Check if the given object is
+        Check if the given object is LongType
         """
         return self._wrap(type(self.obj) is LongType)
 
     def isFloat(self):
         """
-        Check if the given object is
+        Check if the given object is FloatType
         """
         return self._wrap(type(self.obj) is FloatType)
 
     def isComplex(self):
         """
-        Check if the given object is
+        Check if the given object is ComplexType
         """
         return self._wrap(type(self.obj) is ComplexType)
 
     def isString(self):
         """
-        Check if the given object is
+        Check if the given object is StringType
         """
         return self._wrap(type(self.obj) is StringType)
 
     def isUnicode(self):
         """
-        Check if the given object is
+        Check if the given object is UnicodeType
         """
         return self._wrap(type(self.obj) is UnicodeType)
 
@@ -878,133 +899,133 @@ class underscore():
 
     def isFunction(self):
         """
-        Check if the given object is
+        Check if the given object is FunctionType
         """
         return self._wrap(type(self.obj) is FunctionType)
 
     def isLambda(self):
         """
-        Check if the given object is
+        Check if the given object is LambdaType
         """
         return self._wrap(type(self.obj) is LambdaType)  # or type(self.obj) is FunctionType)
 
     def isGenerator(self):
         """
-        Check if the given object is
+        Check if the given object is GeneratorType
         """
         return self._wrap(type(self.obj) is GeneratorType)
 
     def isCode(self):
         """
-        Check if the given object is
+        Check if the given object is CodeType
         """
         return self._wrap(type(self.obj) is CodeType)
 
     def isClass(self):
         """
-        Check if the given object is
+        Check if the given object is ClassType
         """
         return self._wrap(type(self.obj) is ClassType)
 
     def isInstance(self):
         """
-        Check if the given object is
+        Check if the given object is InstanceType
         """
         return self._wrap(type(self.obj) is InstanceType)
 
     def isMethod(self):
         """
-        Check if the given object is
+        Check if the given object is MethodType
         """
         return self._wrap(type(self.obj) is MethodType)
 
     def isUnboundMethod(self):
         """
-        Check if the given object is
+        Check if the given object is UnboundMethodType
         """
         return self._wrap(type(self.obj) is UnboundMethodType)
 
     def isBuiltinFunction(self):
         """
-        Check if the given object is
+        Check if the given object is BuiltinFunctionType
         """
         return self._wrap(type(self.obj) is BuiltinFunctionType)
 
     def isBuiltinMethod(self):
         """
-        Check if the given object is
+        Check if the given object is BuiltinMethodType
         """
         return self._wrap(type(self.obj) is BuiltinMethodType)
 
     def isModule(self):
         """
-        Check if the given object is
+        Check if the given object is ModuleType
         """
         return self._wrap(type(self.obj) is ModuleType)
 
     def isFile(self):
         """
-        Check if the given object is
+        Check if the given object is FileType
         """
         return self._wrap(type(self.obj) is FileType)
 
     def isXRange(self):
         """
-        Check if the given object is
+        Check if the given object is XRangeType
         """
         return self._wrap(type(self.obj) is XRangeType)
 
     def isSlice(self):
         """
-        Check if the given object is
+        Check if the given object is SliceType
         """
         return self._wrap(type(self.obj) is SliceType)
 
     def isEllipsis(self):
         """
-        Check if the given object is
+        Check if the given object is EllipsisType
         """
         return self._wrap(type(self.obj) is EllipsisType)
 
     def isTraceback(self):
         """
-        Check if the given object is
+        Check if the given object is TracebackType
         """
         return self._wrap(type(self.obj) is TracebackType)
 
     def isFrame(self):
         """
-        Check if the given object is
+        Check if the given object is FrameType
         """
         return self._wrap(type(self.obj) is FrameType)
 
     def isBuffer(self):
         """
-        Check if the given object is
+        Check if the given object is BufferType
         """
         return self._wrap(type(self.obj) is BufferType)
 
     def isDictProxy(self):
         """
-        Check if the given object is
+        Check if the given object is DictProxyType
         """
         return self._wrap(type(self.obj) is DictProxyType)
 
     def isNotImplemented(self):
         """
-        Check if the given object is
+        Check if the given object is NotImplementedType
         """
         return self._wrap(type(self.obj) is NotImplementedType)
 
     def isGetSetDescriptor(self):
         """
-        Check if the given object is
+        Check if the given object is GetSetDescriptorType
         """
         return self._wrap(type(self.obj) is GetSetDescriptorType)
 
     def isMemberDescriptor(self):
         """
-        Check if the given object is
+        Check if the given object is MemberDescriptorType
         """
         return self._wrap(type(self.obj) is MemberDescriptorType)
 
@@ -1041,12 +1062,6 @@ class underscore():
 
         return self._wrap(func)
 
-    def escape(self):
-        """
-        Escape a string for HTML interpolation.
-        """
-        return self._wrap(cgi.escape(self.obj))
-
     def result(self, property):
         """
         If the value of the named property is a function then invoke it;
@@ -1078,11 +1093,37 @@ class underscore():
         else:
             return self._wrap(id)
 
+    _html_escape_table = {
+        "&": "&amp;",
+        '"': "&quot;",
+        "'": "&apos;",
+        ">": "&gt;",
+        "<": "&lt;",
+    }
+
+    def escape(self):
+        """
+        Escape a string for HTML interpolation.
+        """
+        # & must be handled first
+        self.obj = self.obj.replace("&", self._html_escape_table["&"])
+
+        for i, k in enumerate(self._html_escape_table):
+            v = self._html_escape_table[k]
+            if k is not "&":
+                self.obj = self.obj.replace(k, v)
+
+        return self._wrap(self.obj)
+
     def unescape(self):
         """
         Within an interpolation, evaluation, or escaping, remove HTML escaping
         that had been previously added.
         """
+        for i, k in enumerate(self._html_escape_table):
+            v = self._html_escape_table[k]
+            self.obj = self.obj.replace(v, k)
+
         return self._wrap(self.obj)
 
     """

@@ -238,11 +238,11 @@ class TestStructure(unittest.TestCase):
 
     def test_union(self):
         result = _.union([1, 2, 3], [2, 30, 1], [1, 40])
-        self.assertEqual([40, 1, 2, 3, 30], result, 'takes the union of a list of arrays')
+        self.assertEqual([1, 2, 3, 30, 40], result, 'takes the union of a list of arrays')
 
         # There is a problem with nested lists
-        # result = _.union([1, 2, 3], [2, 30, 1], [1, 40, [1]])
-        # self.assertEqual([1, 2, 3, 30, 40, 1], result, 'takes the union of a list of nested arrays')
+        result = _.union([1, 2, 3], [2, 30, 1], [1, 40, [1]])
+        self.assertEqual([1, 2, 3, 30, 40, [1]], result, 'takes the union of a list of nested arrays')
 
     def test_difference(self):
         result = _.difference([1, 2, 3], [2, 30, 40])
@@ -262,6 +262,14 @@ class TestStructure(unittest.TestCase):
         result = _.zipObject(['moe', 'larry', 'curly'], [30, 40, 50])
         shouldBe = {"moe": 30, "larry": 40, "curly": 50}
         self.assertEqual(result, shouldBe, "two arrays zipped together into an object")
+
+    def test_pick(self):
+        result = _.pick({"a": 1, "b": 2, "c": 3}, 'a', 'c')
+        self.assertTrue(_.isEqual(result, {'a': 1, 'c': 3}), 'can restrict properties to those named')
+        result = _.pick({"a": 1, "b": 2, "c": 3}, ['b', 'c'])
+        self.assertTrue(_.isEqual(result, {"b": 2, "c": 3}), 'can restrict properties to those named in an array')
+        result = _.pick({"a": 1, "b": 2, "c": 3}, ['a'], 'b')
+        self.assertTrue(_.isEqual(result, {"a": 1, "b": 2}), 'can restrict properties to those named in mixed args')
 
 if __name__ == "__main__":
     print "run these tests by executing `python -m unittest discover` in unittests folder"
