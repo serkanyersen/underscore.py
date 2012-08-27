@@ -6,6 +6,9 @@ from src.underscore import _
 
 class TestStructure(unittest.TestCase):
 
+    class Namespace:
+        pass
+
     def test_bind(self):
         pass
 
@@ -28,7 +31,18 @@ class TestStructure(unittest.TestCase):
         pass
 
     def test_once(self):
-        pass
+        ns = self.Namespace()
+        ns.num = 0
+
+        def add():
+            ns.num += 1
+
+        increment = _.once(add)
+        increment()
+        increment()
+        increment()
+        increment()
+        self.assertEqual(ns.num, 1)
 
     def test_wrap(self):
         pass
