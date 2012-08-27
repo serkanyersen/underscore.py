@@ -512,12 +512,14 @@ class underscore():
         if self._clean.isDict():
             newlist = {}
             for i, k in enumerate(self.obj):
-                if k not in values:
+                # if k not in values:  # use indexof to check identity
+                if _(values).indexOf(k) is -1:
                     newlist.set(k, self.obj[k])
         else:
             newlist = []
             for i, v in enumerate(self.obj):
-                if v not in values:
+                # if v not in values:  # use indexof to check identity
+                if _(values).indexOf(v) is -1:
                     newlist.append(v)
 
         return self._wrap(newlist)
@@ -616,25 +618,52 @@ class underscore():
 
         return self._wrap(result)
 
-    def indexOf(self, str):
+    def indexOf(self, item, isSorted=False):
         """
         Return the position of the first occurrence of an
         item in an array, or -1 if the item is not included in the array.
         """
-        return self._wrap(1)
+        array = self.obj
+        ret = -1
 
-    def lastIndexOf(self, str):
+        if not (self._clean.isList() or self._clean.isTuple()):
+            return self._wrap(-1)
+
+        if isSorted:
+            i = _.sortedIndex(array, item)
+            ret = i if array[i] is item else -1
+        else:
+            i = 0
+            l = len(array)
+            while i < l:
+                if array[i] is item:
+                    return self._wrap(i)
+                i += 1
+        return self._wrap(ret)
+
+    def lastIndexOf(self, item):
         """
         Return the position of the last occurrence of an
         item in an array, or -1 if the item is not included in the array.
         """
-        return self._wrap(2)
+        array = self.obj
+        i = len(array) - 1
+        if not (self._clean.isList() or self._clean.isTuple()):
+            return self._wrap(-1)
 
-    def range(self, start, stop, step):
+        while i > -1:
+            if array[i] is item:
+                return self._wrap(i)
+            i -= 1
+        return self._wrap(-1)
+
+    def range(self, *args):
         """
         Generate an integer Array containing an arithmetic progression.
         """
-        return self._wrap(range(start, stop, step))
+        args = list(args)
+        args.insert(0, self.obj)
+        return self._wrap(range(*args))
 
     """
     Function functions
@@ -697,7 +726,17 @@ class underscore():
         Returns a function that will be executed at most one time, no matter how
         often you call it. Useful for lazy initialization.
         """
-        return self._wrap(self.obj)
+        ns = self.Namespace()
+        ns.memo = None
+        ns.run = False
+
+        def _wrapped(*args):
+            if ns.run == False:
+                ns.memo = self.obj(*args)
+            ns.run = True
+            return ns.memo
+
+        return self._wrap(_wrapped)
 
     def wrap(self, wrapper):
         """
@@ -712,7 +751,16 @@ class underscore():
         Returns a function that is the composition of a list of functions, each
         consuming the return value of the function that follows.
         """
-        return self._wrap(self.obj)
+        args = list(args)
+
+        def ret(*ar):
+            lastRet = self.obj(*ar)
+            for i in args:
+                lastRet = i(lastRet)
+
+            return lastRet
+
+        return self._wrap(ret)
 
     def after(self, times):
         """
@@ -740,15 +788,22 @@ class underscore():
         """
         Return a sorted list of the function names available on the object.
         """
-        return self._wrap(self._clean.filter(lambda k, v, *args: _(v).isCallable()))
+        names = []
+
+        for i, k in enumerate(self.obj):
+            if _(self.obj[k]).isCallable():
+                names.append(k)
+
+        return self._wrap(sorted(names))
     methods = functions
 
     def extend(self, *args):
         """
         Extend a given object with all the properties in passed-in object(s).
         """
+        args = list(args)
         for i in args:
-            self.obj.update(args[i])
+            self.obj.update(i)
 
         return self._wrap(self.obj)
 
@@ -766,11 +821,30 @@ class underscore():
         _.each(self._flatten(args, True, []), by)
         return self._wrap(ns.result)
 
+    def omit(self, *args):
+        copy = {}
+        keys = _(args).flatten()
+        for i, key in enumerate(self.obj):
+            if not _.include(keys, key):
+                copy[key] = self.obj[key]
+
+        return self._wrap(copy)
+
     def defaults(self, *args):
         """
         Fill in a given object with default properties.
         """
-        return self._wrap(self.obj)
+        ns = self.Namespace
+        ns.obj = self.obj
+
+        def by(source, *ar):
+            for i, prop in enumerate(source):
+                if prop not in ns.obj:
+                    ns.obj[prop] = source[prop]
+
+        _.each(args, by)
+
+        return self._wrap(ns.obj)
 
     def clone(self):
         """
@@ -799,12 +873,14 @@ class underscore():
         Is a given array, string, or object empty?
         An "empty" object has no enumerable own-properties.
         """
+        if self.obj == None:
+            return True
         if self._clean.isString():
             ret = self.obj.strip() is ""
         elif self._clean.isDict():
-            ret = len(self.obj.keys()) > 0
+            ret = len(self.obj.keys()) == 0
         else:
-            ret = len(self.obj) > 0
+            ret = len(self.obj) == 0
         return self._wrap(ret)
 
     def isElement(self):
