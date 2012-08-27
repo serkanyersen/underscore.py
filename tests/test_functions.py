@@ -60,10 +60,27 @@ class TestStructure(unittest.TestCase):
         composed_function = _.compose(exclaim, greet, upperize)
 
         self.assertEqual('HI: MOE!', composed_function('moe'), 'can compose a function that takes another')
-        pass
 
     def test_after(self):
-        pass
+
+        def testAfter(afterAmount, timesCalled):
+            ns = self.Namespace()
+            ns.afterCalled = 0
+
+            def afterFunc():
+                ns.afterCalled += 1
+
+            after = _.after(afterAmount, afterFunc)
+
+            while (timesCalled):
+                after()
+                timesCalled -= 1
+
+            return ns.afterCalled
+
+        self.assertEqual(testAfter(5, 5), 1, "after(N) should fire after being called N times")
+        self.assertEqual(testAfter(5, 4), 0, "after(N) should not fire unless called N times")
+        self.assertEqual(testAfter(0, 0), 1, "after(0) should fire immediately")
 
 if __name__ == "__main__":
     print "run these tests by executing `python -m unittest discover` in unittests folder"

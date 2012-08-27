@@ -762,11 +762,22 @@ class underscore():
 
         return self._wrap(ret)
 
-    def after(self, times):
+    def after(self, func):
         """
         Returns a function that will only be executed after being called N times.
         """
-        return self._wrap(self.obj)
+        ns = self.Namespace()
+        ns.times = self.obj
+
+        if ns.times <= 0:
+            return func()
+
+        def _wrapped(*args):
+            if ns.times <= 1:
+                return func(*args)
+            ns.times -= 1
+
+        return self._wrap(_wrapped)
 
     """
     Object Functions
