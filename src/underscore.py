@@ -710,7 +710,7 @@ class underscore():
         def call_it():
             self.obj(*args)
 
-        t = Timer(wait, call_it)
+        t = Timer((float(wait) / float(1000)), call_it)
         t.start()
         return self._wrap(self.obj)
 
@@ -755,7 +755,7 @@ class underscore():
         N milliseconds. If `immediate` is passed, trigger the function on the
         leading edge, instead of the trailing.
         """
-        print self, wait
+        wait = (float(wait) / float(1000))
 
         def debounced(*args, **kwargs):
             def call_it():

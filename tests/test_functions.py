@@ -2,6 +2,7 @@ import unittest
 from unittesthelper import init
 init()  # will let you import modules from upper folder
 from src.underscore import _
+from threading import Timer
 
 
 class TestStructure(unittest.TestCase):
@@ -33,7 +34,23 @@ class TestStructure(unittest.TestCase):
         self.assertEqual(fastO('upper'), 'upper', 'checks hasOwnProperty')
 
     def test_delay(self):
-        pass
+
+        ns = self.Namespace()
+        ns.delayed = False
+
+        def func():
+            ns.delayed = True
+
+        _.delay(func, 50)
+
+        def checkFalse():
+            self.assertFalse(ns.delayed)
+
+        def checkTrue():
+            self.assertTrue(ns.delayed)
+
+        Timer(0.03, checkFalse).start()
+        Timer(0.07, checkTrue).start()
 
     def test_defer(self):
         pass
@@ -42,7 +59,26 @@ class TestStructure(unittest.TestCase):
         pass
 
     def test_debounce(self):
-        pass
+        ns = self.Namespace()
+        ns.counter = 0
+
+        def incr():
+            ns.counter += 1
+
+        debouncedIncr = _.debounce(incr, 50)
+        debouncedIncr()
+        debouncedIncr()
+        debouncedIncr()
+        Timer(0.03, debouncedIncr).start()
+        Timer(0.06, debouncedIncr).start()
+        Timer(0.09, debouncedIncr).start()
+        Timer(0.12, debouncedIncr).start()
+        Timer(0.15, debouncedIncr).start()
+
+        def checkCounter():
+            self.assertEqual(1, ns.counter, "incr was debounced")
+
+        _.delay(checkCounter, 220)
 
     def test_once(self):
         ns = self.Namespace()
