@@ -5,6 +5,7 @@ from itertools import ifilterfalse
 import re
 import functools
 from sets import Set
+from threading import Timer
 
 
 class _IdCounter:
@@ -683,17 +684,34 @@ class underscore():
         """
         return self._wrap(self.obj)
 
-    def memoize(self, hasher):
+    def memoize(self, hasher=None):
         """
         Memoize an expensive function by storing its results.
         """
-        return self._wrap(self.obj)
+        ns = self.Namespace()
+        ns.memo = {}
+        if hasher is None:
+            hasher = lambda x: x
 
-    def delay(self, wait):
+        def _wrapped(*args, **kwargs):
+            key = hasher(*args)
+            if key not in ns.memo:
+                ns.memo[key] = self.obj(*args, **kwargs)
+            return ns.memo[key]
+
+        return self._wrap(_wrapped)
+
+    def delay(self, wait, *args):
         """
         Delays a function for the given number of milliseconds, and then calls
         it with the arguments supplied.
         """
+
+        def call_it():
+            self.obj(*args)
+
+        t = Timer(wait, call_it)
+        t.start()
         return self._wrap(self.obj)
 
     def defer(self):
@@ -708,17 +726,47 @@ class underscore():
         Returns a function, that, when invoked, will only be triggered at most once
         during a given window of time.
         """
+        # var context, args, timeout, throttling, more, result;
+        # var whenDone = _.debounce(function(){ more = throttling = false; }, wait);
+        # return function() {
+        #   context = this; args = arguments;
+        #   var later = function() {
+        #     timeout = null;
+        #     if (more) func.apply(context, args);
+        #     whenDone();
+        #   };
+        #   if (!timeout) timeout = setTimeout(later, wait);
+        #   if (throttling) {
+        #     more = true;
+        #   } else {
+        #     throttling = true;
+        #     result = func.apply(context, args);
+        #   }
+        #   whenDone();
+        #   return result;
+        # };
         return self._wrap(self.obj)
 
     # https://gist.github.com/2871026
-    def debounce(self, wait, immediate):
+    def debounce(self, wait, immediate=None):
         """
         Returns a function, that, as long as it continues to be invoked, will not
         be triggered. The function will be called after it stops being called for
         N milliseconds. If `immediate` is passed, trigger the function on the
         leading edge, instead of the trailing.
         """
-        return self._wrap(self.obj)
+        print self, wait
+
+        def debounced(*args, **kwargs):
+            def call_it():
+                self.obj(*args, **kwargs)
+            try:
+                debounced.t.cancel()
+            except(AttributeError):
+                pass
+            debounced.t = Timer(wait, call_it)
+            debounced.t.start()
+        return self._wrap(debounced)
 
     def once(self):
         """
@@ -729,9 +777,9 @@ class underscore():
         ns.memo = None
         ns.run = False
 
-        def _wrapped(*args):
+        def _wrapped(*args, **kwargs):
             if ns.run == False:
-                ns.memo = self.obj(*args)
+                ns.memo = self.obj(*args, **kwargs)
             ns.run = True
             return ns.memo
 
@@ -752,8 +800,8 @@ class underscore():
         """
         args = list(args)
 
-        def ret(*ar):
-            lastRet = self.obj(*ar)
+        def ret(*ar, **kwargs):
+            lastRet = self.obj(*ar, **kwargs)
             for i in args:
                 lastRet = i(lastRet)
 
@@ -1148,12 +1196,18 @@ class underscore():
 
         return self._wrap(func)
 
-    def result(self, property):
+    def result(self, property, *args):
         """
         If the value of the named property is a function then invoke it;
         otherwise, return it.
         """
-        return self._wrap(self.obj)
+        if self.obj is None:
+            return self._wrap(self.obj)
+
+        value = getattr(self.obj, property)
+        if _.isCallable(value):
+            return self._wrap(value(*args))
+        return self._wrap(value)
 
     def mixin(self):
         """

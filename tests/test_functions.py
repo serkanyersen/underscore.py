@@ -16,7 +16,21 @@ class TestStructure(unittest.TestCase):
         pass
 
     def test_memoize(self):
-        pass
+        def fib(n):
+            return n if n < 2 else fib(n - 1) + fib(n - 2)
+
+        fastFib = _.memoize(fib)
+        self.assertEqual(fib(10), 55, 'a memoized version of fibonacci produces identical results')
+        self.assertEqual(fastFib(10), 55, 'a memoized version of fibonacci produces identical results')
+        self.assertEqual(fastFib(10), 55, 'a memoized version of fibonacci produces identical results')
+        self.assertEqual(fastFib(10), 55, 'a memoized version of fibonacci produces identical results')
+
+        def o(str):
+            return str
+
+        fastO = _.memoize(o)
+        self.assertEqual(o('upper'), 'upper', 'checks hasOwnProperty')
+        self.assertEqual(fastO('upper'), 'upper', 'checks hasOwnProperty')
 
     def test_delay(self):
         pass
