@@ -2,7 +2,6 @@
 import inspect
 from types import *
 from itertools import ifilterfalse
-from itertools import chain
 import re
 import functools
 from sets import Set

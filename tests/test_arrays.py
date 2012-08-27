@@ -73,7 +73,6 @@ class TestArrays(unittest.TestCase):
         result = _.union([1, 2, 3], [2, 30, 1], [1, 40])
         self.assertEqual([1, 2, 3, 30, 40], result, 'takes the union of a list of arrays')
 
-        # There is a problem with nested lists
         result = _.union([1, 2, 3], [2, 30, 1], [1, 40, [1]])
         self.assertEqual([1, 2, 3, 30, 40, [1]], result, 'takes the union of a list of nested arrays')
 
