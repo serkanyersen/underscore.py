@@ -45,18 +45,58 @@ class TestStructure(unittest.TestCase):
 
         def checkFalse():
             self.assertFalse(ns.delayed)
+            print "ASYNC: delay. OK"
 
         def checkTrue():
             self.assertTrue(ns.delayed)
+            print "ASYNC: delay. OK"
 
         Timer(0.03, checkFalse).start()
         Timer(0.07, checkTrue).start()
 
     def test_defer(self):
-        pass
+        ns = self.Namespace()
+        ns.deferred = False
+
+        def defertTest(bool):
+            ns.deferred = bool
+
+        _.defer(defertTest, True)
+
+        def deferCheck():
+            self.assertTrue(ns.deferred, "deferred the function")
+            print "ASYNC: defer. OK"
+
+        _.delay(deferCheck, 50)
 
     def test_throttle(self):
-        pass
+        ns = self.Namespace()
+        ns.counter = 0
+
+        def incr():
+            ns.counter += 1
+
+        throttledIncr = _.throttle(incr, 100)
+        throttledIncr()
+        throttledIncr()
+        throttledIncr()
+        Timer(0.07, throttledIncr).start()
+        Timer(0.12, throttledIncr).start()
+        Timer(0.14, throttledIncr).start()
+        Timer(0.19, throttledIncr).start()
+        Timer(0.22, throttledIncr).start()
+        Timer(0.24, throttledIncr).start()
+
+        def checkCounter1():
+            self.assertEqual(ns.counter, 1, "incr was called immediately")
+            print "ASYNC: throttle. OK"
+
+        def checkCounter2():
+            self.assertEqual(ns.counter, 4, "incr was throttled")
+            print "ASYNC: throttle. OK"
+
+        _.delay(checkCounter1, 90)
+        _.delay(checkCounter2, 400)
 
     def test_debounce(self):
         ns = self.Namespace()
@@ -77,6 +117,7 @@ class TestStructure(unittest.TestCase):
 
         def checkCounter():
             self.assertEqual(1, ns.counter, "incr was debounced")
+            print "ASYNC: debounce. OK"
 
         _.delay(checkCounter, 220)
 
@@ -95,7 +136,21 @@ class TestStructure(unittest.TestCase):
         self.assertEqual(ns.num, 1)
 
     def test_wrap(self):
-        pass
+        def greet(name):
+            return "hi: " + name
+
+        def wrap(func, name):
+            aname = list(name)
+            aname.reverse()
+            reveresed = "".join(aname)
+            return func(name) + ' ' + reveresed
+        backwards = _.wrap(greet, wrap)
+        self.assertEqual(backwards('moe'), 'hi: moe eom', 'wrapped the saluation function')
+
+        inner = lambda: "Hello "
+        obj = {"name": "Moe"}
+        obj["hi"] = _.wrap(inner, lambda fn: fn() + obj["name"])
+        self.assertEqual(obj["hi"](), "Hello Moe")
 
     def test_compose(self):
         def greet(name):

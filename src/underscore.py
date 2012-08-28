@@ -693,13 +693,13 @@ class underscore():
         if hasher is None:
             hasher = lambda x: x
 
-        def _wrapped(*args, **kwargs):
+        def memoized(*args, **kwargs):
             key = hasher(*args)
             if key not in ns.memo:
                 ns.memo[key] = self.obj(*args, **kwargs)
             return ns.memo[key]
 
-        return self._wrap(_wrapped)
+        return self._wrap(memoized)
 
     def delay(self, wait, *args):
         """
@@ -714,38 +714,51 @@ class underscore():
         t.start()
         return self._wrap(self.obj)
 
-    def defer(self):
+    def defer(self, *args):
         """
         Defers a function, scheduling it to run after the current call stack has
         cleared.
         """
-        return self._wrap(self.obj)
+        ## I know! this is not really a defer in python. I'm open to suggestions
+        #########################################################################
+        return self.delay(1, *args)
 
     def throttle(self, wait):
         """
         Returns a function, that, when invoked, will only be triggered at most once
         during a given window of time.
         """
-        # var context, args, timeout, throttling, more, result;
-        # var whenDone = _.debounce(function(){ more = throttling = false; }, wait);
-        # return function() {
-        #   context = this; args = arguments;
-        #   var later = function() {
-        #     timeout = null;
-        #     if (more) func.apply(context, args);
-        #     whenDone();
-        #   };
-        #   if (!timeout) timeout = setTimeout(later, wait);
-        #   if (throttling) {
-        #     more = true;
-        #   } else {
-        #     throttling = true;
-        #     result = func.apply(context, args);
-        #   }
-        #   whenDone();
-        #   return result;
-        # };
-        return self._wrap(self.obj)
+        ns = self.Namespace()
+        ns.timeout = None
+        ns.throttling = None
+        ns.more = None
+        ns.result = None
+
+        def done():
+            ns.more = ns.throttling = False
+
+        whenDone = _.debounce(done, wait)
+        wait = (float(wait) / float(1000))
+
+        def throttled(*args, **kwargs):
+            def later():
+                ns.timeout = None
+                if ns.more:
+                    self.obj(*args, **kwargs)
+                whenDone()
+
+            if not ns.timeout:
+                ns.timeout = Timer(wait, later)
+                ns.timeout.start()
+
+            if ns.throttling:
+                ns.more = True
+            else:
+                ns.throttling = True
+                ns.result = self.obj(*args, **kwargs)
+            whenDone()
+            return ns.result
+        return self._wrap(throttled)
 
     # https://gist.github.com/2871026
     def debounce(self, wait, immediate=None):
@@ -777,13 +790,13 @@ class underscore():
         ns.memo = None
         ns.run = False
 
-        def _wrapped(*args, **kwargs):
+        def work_once(*args, **kwargs):
             if ns.run == False:
                 ns.memo = self.obj(*args, **kwargs)
             ns.run = True
             return ns.memo
 
-        return self._wrap(_wrapped)
+        return self._wrap(work_once)
 
     def wrap(self, wrapper):
         """
@@ -791,7 +804,17 @@ class underscore():
         allowing you to adjust arguments, run code before and after, and
         conditionally execute the original function.
         """
-        return self._wrap(self.obj)
+        def wrapped(*args, **kwargs):
+
+            if kwargs:
+                kwargs["object"] = self.obj
+            else:
+                args = list(args)
+                args.insert(0, self.obj)
+
+            return wrapper(*args, **kwargs)
+
+        return self._wrap(wrapped)
 
     def compose(self, *args):
         """
@@ -800,14 +823,14 @@ class underscore():
         """
         args = list(args)
 
-        def ret(*ar, **kwargs):
+        def composed(*ar, **kwargs):
             lastRet = self.obj(*ar, **kwargs)
             for i in args:
                 lastRet = i(lastRet)
 
             return lastRet
 
-        return self._wrap(ret)
+        return self._wrap(composed)
 
     def after(self, func):
         """
@@ -819,12 +842,12 @@ class underscore():
         if ns.times <= 0:
             return func()
 
-        def _wrapped(*args):
+        def work_after(*args):
             if ns.times <= 1:
                 return func(*args)
             ns.times -= 1
 
-        return self._wrap(_wrapped)
+        return self._wrap(work_after)
 
     """
     Object Functions
