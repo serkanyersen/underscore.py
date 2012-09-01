@@ -9,6 +9,9 @@ class TestUtility(unittest.TestCase):
     class Namespace():
         pass
 
+    def setUp(self):
+        _.templateSettings = {}
+
     def test_identity(self):
         moe = {"name": 'moe'}
         self.assertEqual(moe, _.identity(moe), "moe is the same as his identity")
@@ -43,164 +46,163 @@ class TestUtility(unittest.TestCase):
         self.assertEqual("Curly &amp;amp; Moe", _.escape("Curly &amp; Moe"))
 
     def test_template(self):
-        #   var basicTemplate = _.template("<%= thing %> is gettin' on my noives!");
-        #   var result = basicTemplate({thing : 'This'});
-        #   equal(result, "This is gettin' on my noives!", 'can do basic attribute interpolation');
+        basicTemplate = _.template("<%= thing %> is gettin' on my noives!")
+        result = basicTemplate({"thing": 'This'})
+        self.assertEqual(result, "This is gettin' on my noives!", 'can do basic attribute interpolation')
 
-        #   var sansSemicolonTemplate = _.template("A <% this %> B");
-        #   equal(sansSemicolonTemplate(), "A  B");
+        sansSemicolonTemplate = _.template("A <% this %> B")
+        self.assertEqual(sansSemicolonTemplate(), "A  B")
 
-        #   var backslashTemplate = _.template("<%= thing %> is \\ridanculous");
-        #   equal(backslashTemplate({thing: 'This'}), "This is \\ridanculous");
+        backslashTemplate = _.template("<%= thing %> is \\ridanculous")
+        self.assertEqual(backslashTemplate({"thing": 'This'}), "This is \ridanculous")
 
-        #   var escapeTemplate = _.template('<%= a ? "checked=\\"checked\\"" : "" %>');
-        #   equal(escapeTemplate({a: true}), 'checked="checked"', 'can handle slash escapes in interpolations.');
+        escapeTemplate = _.template('<%= "checked=\\"checked\\"" if a else "" %>')
+        self.assertEqual(escapeTemplate({"a": True}), 'checked="checked"', 'can handle slash escapes in interpolations.')
 
-        #   var fancyTemplate = _.template("<ul><% \
-        #     for (key in people) { \
-        #   %><li><%= people[key] %></li><% } %></ul>");
-        #   result = fancyTemplate({people : {moe : "Moe", larry : "Larry", curly : "Curly"}});
-        #   equal(result, "<ul><li>Moe</li><li>Larry</li><li>Curly</li></ul>", 'can run arbitrary javascript in templates');
+        fancyTemplate = _.template("<ul><% for key in people: %><li><%= people[key] %></li><% endfor %></ul>")
+        result = fancyTemplate({"people": {"moe": "Moe", "larry": "Larry", "curly": "Curly"}})
+        self.assertEqual(result, "<ul><li>Larry</li><li>Curly</li><li>Moe</li></ul>", 'can run arbitrary javascript in templates')
 
-        #   var escapedCharsInJavascriptTemplate = _.template("<ul><% _.each(numbers.split('\\n'), function(item) { %><li><%= item %></li><% }) %></ul>");
-        #   result = escapedCharsInJavascriptTemplate({numbers: "one\ntwo\nthree\nfour"});
-        #   equal(result, "<ul><li>one</li><li>two</li><li>three</li><li>four</li></ul>", 'Can use escaped characters (e.g. \\n) in Javascript');
+        escapedCharsInJavascriptTemplate = _.template("<ul><% def by(item, *args): %><li><%= item %></li><% enddef %><% _.each(numbers.split('\\n'), by) %></ul>")
+        #print escapedCharsInJavascriptTemplate.source
+        result = escapedCharsInJavascriptTemplate({"numbers": "one\ntwo\nthree\nfour"})
+        #print result, "####"
+        self.assertEqual(result, "<ul><li>one</li><li>two</li><li>three</li><li>four</li></ul>", 'Can use escaped characters (e.g. \\n) in Javascript')
 
-        #   var namespaceCollisionTemplate = _.template("<%= pageCount %> <%= thumbnails[pageCount] %> <% _.each(thumbnails, function(p) { %><div class=\"thumbnail\" rel=\"<%= p %>\"></div><% }); %>");
-        #   result = namespaceCollisionTemplate({
-        #     pageCount: 3,
-        #     thumbnails: {
-        #       1: "p1-thumbnail.gif",
-        #       2: "p2-thumbnail.gif",
-        #       3: "p3-thumbnail.gif"
-        #     }
-        #   });
-        #   equal(result, "3 p3-thumbnail.gif <div class=\"thumbnail\" rel=\"p1-thumbnail.gif\"></div><div class=\"thumbnail\" rel=\"p2-thumbnail.gif\"></div><div class=\"thumbnail\" rel=\"p3-thumbnail.gif\"></div>");
+        namespaceCollisionTemplate = _.template("<%= pageCount %> <%= thumbnails[pageCount] %> <% def by(p, *args): %><div class=\"thumbnail\" rel=\"<%= p %>\"></div><% enddef %><% _.each(thumbnails, by) %>")
+        result = namespaceCollisionTemplate({
+            "pageCount": 3,
+            "thumbnails": {
+              1: "p1-thumbnail.gif",
+              2: "p2-thumbnail.gif",
+              3: "p3-thumbnail.gif"
+            }
+        })
 
-        #   var noInterpolateTemplate = _.template("<div><p>Just some text. Hey, I know this is silly but it aids consistency.</p></div>");
-        #   result = noInterpolateTemplate();
-        #   equal(result, "<div><p>Just some text. Hey, I know this is silly but it aids consistency.</p></div>");
+        self.assertEqual(result, '3 p3-thumbnail.gif <div class="thumbnail" rel="p1-thumbnail.gif"></div><div class="thumbnail" rel="p2-thumbnail.gif"></div><div class="thumbnail" rel="p3-thumbnail.gif"></div>')
 
-        #   var quoteTemplate = _.template("It's its, not it's");
-        #   equal(quoteTemplate({}), "It's its, not it's");
+        noInterpolateTemplate = _.template("<div><p>Just some text. Hey, I know this is silly but it aids consistency.</p></div>")
+        result = noInterpolateTemplate()
+        self.assertEqual(result, "<div><p>Just some text. Hey, I know this is silly but it aids consistency.</p></div>")
 
-        #   var quoteInStatementAndBody = _.template("<%\
-        #     if(foo == 'bar'){ \
-        #   %>Statement quotes and 'quotes'.<% } %>");
-        #   equal(quoteInStatementAndBody({foo: "bar"}), "Statement quotes and 'quotes'.");
+        quoteTemplate = _.template("It's its, not it's")
+        self.assertEqual(quoteTemplate({}), "It's its, not it's")
 
-        #   var withNewlinesAndTabs = _.template('This\n\t\tis: <%= x %>.\n\tok.\nend.');
-        #   equal(withNewlinesAndTabs({x: 'that'}), 'This\n\t\tis: that.\n\tok.\nend.');
+        quoteInStatementAndBody = _.template("<% \
+           if foo == 'bar': \
+        %>Statement quotes and 'quotes'.<% endif %>")
+        self.assertEqual(quoteInStatementAndBody({"foo": "bar"}), "Statement quotes and 'quotes'.")
 
-        #   var template = _.template("<i><%- value %></i>");
-        #   var result = template({value: "<script>"});
-        #   equal(result, '<i>&lt;script&gt;</i>');
+        withNewlinesAndTabs = _.template('This\n\t\tis: <%= x %>.\n\tok.\nend.')
+        self.assertEqual(withNewlinesAndTabs({"x": 'that'}), 'This\n\t\tis: that.\n\tok.\nend.')
 
-        #   var stooge = {
-        #     name: "Moe",
-        #     template: _.template("I'm <%= this.name %>")
-        #   };
-        #   equal(stooge.template(), "I'm Moe");
+        template = _.template("<i><%- value %></i>")
+        result = template({"value": "<script>"})
+        self.assertEqual(result, '<i>&lt;script&gt;</i>')
 
-        #   if (!$.browser.msie) {
-        #     var fromHTML = _.template($('#template').html());
-        #     equal(fromHTML({data : 12345}).replace(/\s/g, ''), '<li>24690</li>');
-        #   }
+        # This wouldn't work in python
+        # stooge = {
+        #    "name": "Moe",
+        #    "template": _.template("I'm <%= this.name %>")
+        # }
+        # self.assertEqual(stooge.template(), "I'm Moe")
 
-        #   _.templateSettings = {
-        #     evaluate    : /\{\{([\s\S]+?)\}\}/g,
-        #     interpolate : /\{\{=([\s\S]+?)\}\}/g
-        #   };
+        _.templateSettings = {
+           "evaluate": r"\{\{([\s\S]+?)\}\}",
+           "interpolate": r"\{\{=([\s\S]+?)\}\}"
+        }
 
-        #   var custom = _.template("<ul>{{ for (key in people) { }}<li>{{= people[key] }}</li>{{ } }}</ul>");
-        #   result = custom({people : {moe : "Moe", larry : "Larry", curly : "Curly"}});
-        #   equal(result, "<ul><li>Moe</li><li>Larry</li><li>Curly</li></ul>", 'can run arbitrary javascript in templates');
+        custom = _.template("<ul>{{ for key in people: }}<li>{{= people[key] }}</li>{{ endfor }}</ul>")
+        result = custom({"people": {"moe": "Moe", "larry": "Larry", "curly": "Curly"}})
+        self.assertEqual(result, "<ul><li>Larry</li><li>Curly</li><li>Moe</li></ul>", 'can run arbitrary javascript in templates')
 
-        #   var customQuote = _.template("It's its, not it's");
-        #   equal(customQuote({}), "It's its, not it's");
+        customQuote = _.template("It's its, not it's")
+        self.assertEqual(customQuote({}), "It's its, not it's")
 
-        #   var quoteInStatementAndBody = _.template("{{ if(foo == 'bar'){ }}Statement quotes and 'quotes'.{{ } }}");
-        #   equal(quoteInStatementAndBody({foo: "bar"}), "Statement quotes and 'quotes'.");
+        quoteInStatementAndBody = _.template("{{ if foo == 'bar': }}Statement quotes and 'quotes'.{{ endif }}")
+        self.assertEqual(quoteInStatementAndBody({"foo": "bar"}), "Statement quotes and 'quotes'.")
 
-        #   _.templateSettings = {
-        #     evaluate    : /<\?([\s\S]+?)\?>/g,
-        #     interpolate : /<\?=([\s\S]+?)\?>/g
-        #   };
+        _.templateSettings = {
+            "evaluate": r"<\?([\s\S]+?)\?>",
+            "interpolate": r"<\?=([\s\S]+?)\?>"
+        }
 
-        #   var customWithSpecialChars = _.template("<ul><? for (key in people) { ?><li><?= people[key] ?></li><? } ?></ul>");
-        #   result = customWithSpecialChars({people : {moe : "Moe", larry : "Larry", curly : "Curly"}});
-        #   equal(result, "<ul><li>Moe</li><li>Larry</li><li>Curly</li></ul>", 'can run arbitrary javascript in templates');
+        customWithSpecialChars = _.template("<ul><? for key in people: ?><li><?= people[key] ?></li><? endfor ?></ul>")
+        result = customWithSpecialChars({"people": {"moe": "Moe", "larry": "Larry", "curly": "Curly"}})
+        self.assertEqual(result, "<ul><li>Larry</li><li>Curly</li><li>Moe</li></ul>", 'can run arbitrary javascript in templates')
 
-        #   var customWithSpecialCharsQuote = _.template("It's its, not it's");
-        #   equal(customWithSpecialCharsQuote({}), "It's its, not it's");
+        customWithSpecialCharsQuote = _.template("It's its, not it's")
+        self.assertEqual(customWithSpecialCharsQuote({}), "It's its, not it's")
 
-        #   var quoteInStatementAndBody = _.template("<? if(foo == 'bar'){ ?>Statement quotes and 'quotes'.<? } ?>");
-        #   equal(quoteInStatementAndBody({foo: "bar"}), "Statement quotes and 'quotes'.");
+        quoteInStatementAndBody = _.template("<? if foo == 'bar': ?>Statement quotes and 'quotes'.<? endif ?>")
+        self.assertEqual(quoteInStatementAndBody({"foo": "bar"}), "Statement quotes and 'quotes'.")
 
-        #   _.templateSettings = {
-        #     interpolate : /\{\{(.+?)\}\}/g
-        #   };
+        _.templateSettings = {
+            "interpolate": r"\{\{(.+?)\}\}"
+        }
 
-        #   var mustache = _.template("Hello {{planet}}!");
-        #   equal(mustache({planet : "World"}), "Hello World!", "can mimic mustache.js");
+        mustache = _.template("Hello {{planet}}!")
+        self.assertEqual(mustache({"planet": "World"}), "Hello World!", "can mimic mustache.js")
 
-        #   var templateWithNull = _.template("a null undefined {{planet}}");
-        #   equal(templateWithNull({planet : "world"}), "a null undefined world", "can handle missing escape and evaluate settings");
-        # });
+        templateWithNull = _.template("a null undefined {{planet}}")
+        self.assertEqual(templateWithNull({"planet": "world"}), "a null undefined world", "can handle missing escape and evaluate settings")
 
-        # test('_.template handles \\u2028 & \\u2029', function() {
-        #   var tmpl = _.template('<p>\u2028<%= "\\u2028\\u2029" %>\u2029</p>');
-        #   strictEqual(tmpl(), '<p>\u2028\u2028\u2029\u2029</p>');
-        # });
+    def test_template_escape(self):
+        tmpl = _.template('<p>\u2028<%= "\\u2028\\u2029" %>\u2029</p>')
+        self.assertEqual(tmpl(), '<p>\u2028\u2028\u2029\u2029</p>')
 
-        # test('result calls functions and returns primitives', function() {
-        #   var obj = {w: '', x: 'x', y: function(){ return this.x; }};
-        #   strictEqual(_.result(obj, 'w'), '');
-        #   strictEqual(_.result(obj, 'x'), 'x');
-        #   strictEqual(_.result(obj, 'y'), 'x');
-        #   strictEqual(_.result(obj, 'z'), undefined);
-        #   strictEqual(_.result(null, 'x'), null);
-        # });
+    def test_result(self):
+        obj = {"w": '', "x": 'x', "y": lambda x="x": x}
+        self.assertEqual(_.result(obj, 'w'), '')
+        self.assertEqual(_.result(obj, 'x'), 'x')
+        self.assertEqual(_.result(obj, 'y'), 'x')
+        self.assertEqual(_.result(obj, 'z'), None)
+        self.assertEqual(_.result(None, 'x'), None)
 
-        # test('_.templateSettings.variable', function() {
-        #   var s = '<%=data.x%>';
-        #   var data = {x: 'x'};
-        #   strictEqual(_.template(s, data, {variable: 'data'}), 'x');
-        #   _.templateSettings.variable = 'data';
-        #   strictEqual(_.template(s)(data), 'x');
-        # });
+    def test_template_variable(self):
+        s = '<%=data["x"]%>'
+        data = {"x": 'x'}
+        self.assertEqual(_.template(s, data, {"variable": 'data'}), 'x')
+        _.templateSettings = {
+            "variable": 'data'
+        }
+        self.assertEqual(_.template(s)(data), 'x')
 
-        # test('#547 - _.templateSettings is unchanged by custom settings.', function() {
-        #   ok(!_.templateSettings.variable);
-        #   _.template('', {}, {variable: 'x'});
-        #   ok(!_.templateSettings.variable);
-        # });
+    def test_temp_settings_no_change(self):
+        self.assertFalse("variable" in _.templateSettings)
+        _.template('', {}, {"variable": 'x'})
+        self.assertFalse("variable" in _.templateSettings)
 
-        # test('#556 - undefined template variables.', function() {
-        #   var template = _.template('<%=x%>');
-        #   strictEqual(template({x: null}), '');
-        #   strictEqual(template({x: undefined}), '');
+    def test_template_undef(self):
+        template = _.template('<%=x%>')
+        self.assertEqual(template({"x": None}), '')
 
-        #   var templateEscaped = _.template('<%-x%>');
-        #   strictEqual(templateEscaped({x: null}), '');
-        #   strictEqual(templateEscaped({x: undefined}), '');
+        templateEscaped = _.template('<%-x%>')
+        self.assertEqual(templateEscaped({"x": None}), '')
 
-        #   var templateWithProperty = _.template('<%=x.foo%>');
-        #   strictEqual(templateWithProperty({x: {} }), '');
-        #   strictEqual(templateWithProperty({x: {} }), '');
+        templateWithPropertyEscaped = _.template('<%-x["foo"]%>')
+        self.assertEqual(templateWithPropertyEscaped({"x": {"foo": None}}), '')
 
-        #   var templateWithPropertyEscaped = _.template('<%-x.foo%>');
-        #   strictEqual(templateWithPropertyEscaped({x: {} }), '');
-        #   strictEqual(templateWithPropertyEscaped({x: {} }), '');
-        # });
+    def test_interpolate_only_once(self):
+        ns = self.Namespace()
+        ns.count = 0
+        template = _.template('<%= f() %>')
 
-        # test('interpolate evaluates code only once.', 2, function() {
-        #   var count = 0;
-        #   var template = _.template('<%= f() %>');
-        #   template({f: function(){ ok(!(count++)); }});
+        def test():
+            self.assertTrue(not ns.count)
+            ns.count += 1
 
-        #   var countEscaped = 0;
-        #   var templateEscaped = _.template('<%- f() %>');
-        #   templateEscaped({f: function(){ ok(!(countEscaped++)); }});
-        # });
-        pass
+        template({"f": test})
+
+        ns.countEscaped = 0
+        templateEscaped = _.template('<%- f() %>')
+
+        def test2():
+            self.assertTrue(not ns.countEscaped)
+            ns.countEscaped += 1
+
+        templateEscaped({"f": test2})
+
+if __name__ == "__main__":
+    print "run these tests by executing `python -m unittest discover` in unittests folder"
+    unittest.main()

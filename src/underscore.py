@@ -1227,7 +1227,10 @@ class underscore():
         if self.obj is None:
             return self._wrap(self.obj)
 
-        value = getattr(self.obj, property)
+        if(hasattr(self.obj, property)):
+            value = getattr(self.obj, property)
+        else:
+            value = self.obj.get(property)
         if _.isCallable(value):
             return self._wrap(value(*args))
         return self._wrap(value)
@@ -1299,20 +1302,75 @@ class underscore():
         "escape":       r"<%-([\s\S]+?)%>"
     }
 
-    def template(self, settings={}):
+    escapes = {
+        '\\':    '\\',
+        "'":     r"'",
+        "r":     r'\r',
+        "n":     r'\n',
+        "t":     r'\t',
+        "u2028": r'\u2028',
+        "u2029": r'\u2029',
+        r'\\':   '\\',
+        r"'":    "'",
+        'br':    "r",
+        'bn':    "n",
+        'bt':    "t",
+        r'\u2028':  "u2028",
+        r'\u2029':  "u2029"
+    }
+
+    def template(self, data=None, settings=None):
         """
         Python micro-templating, similar to John Resig's implementation.
         Underscore templating handles arbitrary delimiters, preserves whitespace,
         and correctly escapes quotes within interpolated code.
         """
-        # settings = _.defaults(settings, self.templateSettings)
-        settings = {
-            "interpolate": self.templateSettings.get('interpolate'),
-            "evaluate": self.templateSettings.get('evaluate')
-        }
+        if settings == None:
+            settings = {}
+        ts = _.templateSettings
+        _.defaults(ts, self.templateSettings)
+        _.extend(settings, ts)
+
+        # settings = {
+        #     "interpolate": self.templateSettings.get('interpolate'),
+        #     "evaluate": self.templateSettings.get('evaluate'),
+        #     "escape": self.templateSettings.get('escape')
+        # }
+
+        _.extend(settings, {
+            "escaper": r"\\|'|\r|\n|\t|\u2028|\u2029",
+            "unescaper": r"\\(\\|'|r|n|t|u2028|u2029)"
+        })
+
         src = self.obj
+        #src = re.sub('"', r'\"', src)
+        #src = re.sub(r'\\', r"\\", src)
         ns = self.Namespace()
         ns.indent_level = 1
+
+        def unescape(code):
+            def unescapes(matchobj):
+                a = re.sub("^[\'\"]|[\'\"]$", "", ("%r" % matchobj.group(1)))
+                # Python doesn't accept \n as a key
+                if a == '\n':
+                    a = "bn"
+                if a == '\r':
+                    a = "br"
+                if a == '\t':
+                    a = "bt"
+                return self.escapes[a]
+            return re.sub(settings.get('unescaper'), unescapes, code)
+
+        def escapes(matchobj):
+            a = matchobj.group(0)
+            # Python doesn't accept \n as a key
+            if a == '\n':
+                a = "bn"
+            if a == '\r':
+                a = "br"
+            if a == '\t':
+                a = "bt"
+            return '\\' + self.escapes[a]
 
         def indent(n=None):
             if n is not None:
@@ -1321,22 +1379,36 @@ class underscore():
 
         def interpolate(matchobj):
             key = (matchobj.group(1).decode('string-escape')).strip()
-            return '" + str(' + key + ') + "'
+            return "' + str(" + unescape(key) + " or '') + '"
 
         def evaluate(matchobj):
             code = (matchobj.group(1).decode('string-escape')).strip()
             if code.startswith("end"):
-                return '")\n' + indent(-1) + '__p += ("'
+                return "')\n" + indent(-1) + "ns.__p += ('"
             elif code.endswith(':'):
-                return '")\n' + indent() + code + "\n" + indent(+1) + '__p += ("'
+                return "')\n" + indent() + unescape(code) + "\n" + indent(+1) + "ns.__p += ('"
             else:
-                return '")\n' + indent() + code + "\n" + indent() + '__p += ("'
+                return "')\n" + indent() + unescape(code) + "\n" + indent() + "ns.__p += ('"
 
-        source = indent() + '__p = ""\n'
-        source += indent() + '__p += ("' + re.sub(settings.get('interpolate'), interpolate, ("%r" % src)) + '")\n'
+        def escape(matchobj):
+            key = (matchobj.group(1).decode('string-escape')).strip()
+            return "' + _.escape(str(" + unescape(key) + " or '')) + '"
+
+        source = indent() + 'class closure:\n    pass # for full closure support\n'
+        source += indent() + 'ns = closure()\n'
+        source += indent() + "ns.__p = ''\n"
+        #src = re.sub("^[\'\"]|[\'\"]$", "", ("%r" % src))
+        src = re.sub(settings.get("escaper"), escapes, src)
+        source += indent() + "ns.__p += ('" + re.sub(settings.get('escape'), escape, src) + "')\n"
+        source = re.sub(settings.get('interpolate'), interpolate, source)
         source = re.sub(settings.get('evaluate'), evaluate, source)
-        source += indent() + 'return __p\n'
-        return self.create_function("obj={}", source)
+        source += indent() + 'return ns.__p.decode("string_escape")\n'
+
+        f = self.create_function(settings.get("variable") or "obj=None", source)
+
+        if data != None:
+            return f(data)
+        return f
 
     def create_function(self, args, source):
         source = "def func(" + args + "):\n" + source + "\n"
@@ -1345,11 +1417,11 @@ class underscore():
             code = compile(source, '', 'exec')
             exec code in globals(), locals()
         except:
-            print "Error Evaluating Code"
             print source
+            raise  Exception("template error")
         ns.func = func
 
-        def _wrap(obj):
+        def _wrap(obj={"this": ""}):
             for i, k in enumerate(obj):
                 ns.func.func_globals[k] = obj[k]
             return ns.func(obj)
@@ -1395,6 +1467,7 @@ class underscore():
                 _.__setattr__(m, caller(m))
         # put the class itself as a parameter so that we can use it on outside
         _.__setattr__("underscore", underscore)
+        _.templateSettings = {}
 
 # Imediatelly create static object
 underscore.makeStatic()
