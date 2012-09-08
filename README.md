@@ -35,7 +35,7 @@ Import underscore to your project
 ```python
 from underscore import _
 ```
-Use it just like javascript version
+## Use it just like javascript version
 ```python
 # Dynamically
 _(["foo", "bar"]).invoke("upper")  # ["FOO", "BAR"]
@@ -45,6 +45,39 @@ _.filter(["foo", "hello", "bar", "world"], lambda x, *a: len(x) > 3)  # ["hello"
 _([10, 48, 56, 30, 20]).chain().filter(lambda x, *a: x > 20).map(lambda x, *a: x * 2).sortBy().value()
 # [60, 96, 112]
 ```
+
+## Full micro templating support
+```python
+tmpl = _.template("Name: <% if prefix: %><%= prefix %>. <% endif %><%= name %>\n\
+Last Name: <%=lname.upper() %>\n\
+<% if email: %>\
+E-mail: <%= email %>\n\
+<% endif %>")
+
+people = [{
+  "prefix": "",
+  "name": "John",
+  "lname": "Doe",
+  "email": "johndoe@example.com"
+},{
+  "prefix": "Mr",
+  "name": "James",
+  "lname": "Brown",
+  "email": "james@brown.net"
+}]
+
+for person in people:
+  print tmpl(person)
+```
+
+Output
+
+    Name: John
+    Last Name: DOE
+    E-mail: johndoe@example.com
+    Name: Mr. James
+    Last Name: BROWN
+    E-mail: james@brown.net
 
 For more information [underscorejs.org](http://underscorejs.org)
 
