@@ -77,8 +77,8 @@ class underscore():
 
     Null = "__Null__"
     """
-    Since we are working with the native types of the library
-    I cannot compare any type with None, so I use a Substitute type for cheching
+    Since we are working with the native types
+    I cannot compare anything type with None, so I use a Substitute type for checking
     """
 
     _wrapped = Null

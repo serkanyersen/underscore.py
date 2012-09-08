@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='underscore.py',
-      version='0.0.2',
+      version='0.1.2',
       description='Port of underscore.js into python',
       author='Serkan Yersen',
       author_email='serkanyersen@gmail.com',
