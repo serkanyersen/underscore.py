@@ -10,10 +10,12 @@
 
 Underscore.py is a python port of excellent javascript library underscore.js
 
-**From underscore page:**
+**What is underscore.js?**
 
-    Underscore.js is a utility-belt library for JavaScript that provides support for the usual functional
-    suspects (each, map, reduce, filter...) without extending any core JavaScript objects.
+    From underscore page: Underscore.js is a utility-belt library for JavaScript that provides support for the
+    usual functional suspects (each, map, reduce, filter...) without extending any core JavaScript objects.
+
+NOTE: It's obvious that python already has nearly all features of underscore library built-in. I'm not trying to fill any gap in python. If you are coming from JavaScript this library will provide you a familiar interface, a set of tools you already know how to use and micro templating functionality. Use it wisely and try to use built-in functions wherever possible.
 
 ## Installing
 Clone this repository:
@@ -35,6 +37,11 @@ Import underscore to your project
 ```python
 from underscore import _
 ```
+or if you don't want to mess with _ variable
+```python
+from underscore import _ as us  # You can use any name you want, __ or u
+```
+
 ## Use it just like javascript version
 ```python
 # Dynamically
@@ -69,7 +76,6 @@ people = [{
 for person in people:
   print tmpl(person)
 ```
-
 Output
 
     Name: John
@@ -79,11 +85,11 @@ Output
     Last Name: BROWN
     E-mail: james@brown.net
 
-For more information [underscorejs.org](http://underscorejs.org)
+For more information and documentation [underscorejs.org](http://underscorejs.org)
 
-Source: [Underscore.js on Github](https://github.com/documentcloud/underscore)
+Original Source: [Underscore.js on Github](https://github.com/documentcloud/underscore)
 
 ### Disclaimer
-Please keep in mind that this is just a port of a javascript library, please don't get started with
+Please keep in mind that this is a direct port of a javascript library, so don't get started with
 the "but it's not pythonic" stuff. This library has no intentions to be pythonic, infact it tries to
-bring same underscore experience from javascript to python
+bring the same underscore experience from javascript to python

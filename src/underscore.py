@@ -66,9 +66,6 @@ class underscore():
     """
 
     VERSION = "0.1.2"
-    """
-    Version of the library
-    """
 
     chained = False
     """
@@ -78,7 +75,7 @@ class underscore():
     Null = "__Null__"
     """
     Since we are working with the native types
-    I cannot compare anything type with None, so I use a Substitute type for checking
+    I cannot compare anything with None, so I use a Substitute type for checking
     """
 
     _wrapped = Null
