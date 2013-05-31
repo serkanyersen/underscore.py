@@ -8,7 +8,7 @@ from sets import Set
 from threading import Timer
 
 
-class _IdCounter:
+class _IdCounter(object):
     """
     A Global Dictionary for uniq IDs
     """
@@ -53,7 +53,7 @@ def _(obj):
     return underscore(obj)
 
 
-class underscore():
+class underscore(object):
     """
     Instead of creating a class named _ (underscore) I created underscore
     So I can use _ function both statically and dynamically just it
@@ -84,7 +84,7 @@ class underscore():
     Value of passed object, I assign it no Null so I can check against None results
     """
 
-    class Namespace:
+    class Namespace(object):
         """
         For simulating full closure support
         """
@@ -788,7 +788,7 @@ class underscore():
         ns.run = False
 
         def work_once(*args, **kwargs):
-            if ns.run == False:
+            if ns.run is False:
                 ns.memo = self.obj(*args, **kwargs)
             ns.run = True
             return ns.memo
@@ -951,7 +951,7 @@ class underscore():
         Is a given array, string, or object empty?
         An "empty" object has no enumerable own-properties.
         """
-        if self.obj == None:
+        if self.obj is None:
             return True
         if self._clean.isString():
             ret = self.obj.strip() is ""
@@ -1044,11 +1044,11 @@ class underscore():
         """
         Check if the given object is any of the function types
         """
-        return self._wrap(type(self.obj) is MethodType \
-                       or type(self.obj) is FunctionType \
-                       or type(self.obj) is LambdaType \
-                       or type(self.obj) is BuiltinMethodType \
-                       or type(self.obj) is BuiltinFunctionType\
+        return self._wrap(type(self.obj) is MethodType
+                       or type(self.obj) is FunctionType
+                       or type(self.obj) is LambdaType
+                       or type(self.obj) is BuiltinMethodType
+                       or type(self.obj) is BuiltinFunctionType
                        or type(self.obj) is UnboundMethodType)
 
     def isFunction(self):
@@ -1322,7 +1322,7 @@ class underscore():
         Underscore templating handles arbitrary delimiters, preserves whitespace,
         and correctly escapes quotes within interpolated code.
         """
-        if settings == None:
+        if settings is None:
             settings = {}
         ts = _.templateSettings
         _.defaults(ts, self.templateSettings)
@@ -1391,7 +1391,7 @@ class underscore():
             key = (matchobj.group(1).decode('string-escape')).strip()
             return "' + _.escape(str(" + unescape(key) + " or '')) + '"
 
-        source = indent() + 'class closure:\n    pass # for full closure support\n'
+        source = indent() + 'class closure(object):\n    pass # for full closure support\n'
         source += indent() + 'ns = closure()\n'
         source += indent() + "ns.__p = ''\n"
         #src = re.sub("^[\'\"]|[\'\"]$", "", ("%r" % src))
@@ -1403,7 +1403,7 @@ class underscore():
 
         f = self.create_function(settings.get("variable") or "obj=None", source)
 
-        if data != None:
+        if data is not None:
             return f(data)
         return f
 
@@ -1415,7 +1415,7 @@ class underscore():
             exec code in globals(), locals()
         except:
             print source
-            raise  Exception("template error")
+            raise Exception("template error")
         ns.func = func
 
         def _wrap(obj={"this": ""}):
