@@ -9,8 +9,7 @@ from threading import Timer
 
 
 class _IdCounter(object):
-    """
-    A Global Dictionary for uniq IDs
+    """ A Global Dictionary for uniq IDs
     """
     count = 0
     pass
@@ -35,8 +34,7 @@ class __(object):
 
 
 def u_withrepr(reprfun):
-    """
-    Decorator to rename a function
+    """ Decorator to rename a function
     """
     def _wrap(func):
         return __(reprfun, func)
@@ -61,15 +59,13 @@ class underscore(object):
     """
 
     object = None
-    """
-    Passed object
+    """ Passed object
     """
 
     VERSION = "0.1.2"
 
     chained = False
-    """
-    If the object is in a chained state or not
+    """ If the object is in a chained state or not
     """
 
     Null = "__Null__"
@@ -84,18 +80,18 @@ class underscore(object):
     Value of passed object, I assign it no Null so I can check against None results
     """
 
-    class Namespace(object):
-        """
-        For simulating full closure support
-        """
-        pass
-
     def __init__(self, obj):
-        """
-        Let there be light
+        """ Let there be light
         """
         self.chained = False
         self.object = obj
+
+        class Namespace(object):
+            """ For simulating full closure support
+            """
+            pass
+
+        self.Namespace = Namespace
 
     def __str__(self):
         if self.chained is True:
@@ -120,6 +116,13 @@ class underscore(object):
         else:
             return self.object
 
+    @obj.setter
+    def obj(self, value):
+        """ New style classes requires setters for @propert methods
+        """
+        self.object = value
+        return self.object
+
     def _wrap(self, ret):
         """
         Returns result but ig chain method is used
@@ -140,8 +143,7 @@ class underscore(object):
         return _(self.obj)
 
     def _toOriginal(self, val):
-        """
-        Pitty attempt to convert itertools result into a real object
+        """ Pitty attempt to convert itertools result into a real object
         """
         if self._clean.isTuple():
             return tuple(val)
@@ -175,8 +177,7 @@ class underscore(object):
     forEach = each
 
     def map(self, func):
-        """
-        Return the results of applying the iterator to each element.
+        """ Return the results of applying the iterator to each element.
         """
         ns = self.Namespace()
         ns.results = []
@@ -189,8 +190,7 @@ class underscore(object):
     collect = map
 
     def reduce(self, func, memo=None):
-        """
-        **Reduce** builds up a single result from a list of values, aka `inject`, or foldl
+        """ **Reduce** builds up a single result from a list of values, aka `inject`, or foldl
         """
         if memo is None:
             memo = []
@@ -211,8 +211,7 @@ class underscore(object):
     foldl = inject = reduce
 
     def reduceRight(self, func):
-        """
-        The right-associative version of reduce, also known as `foldr`.
+        """ The right-associative version of reduce, also known as `foldr`.
         """
         #foldr = lambda f, i: lambda s: reduce(f, s, i)
         x = self.obj[:]
@@ -221,8 +220,7 @@ class underscore(object):
     foldr = reduceRight
 
     def find(self, func):
-        """
-        Return the first value which passes a truth test. Aliased as `detect`.
+        """ Return the first value which passes a truth test. Aliased as `detect`.
         """
         self.ftmp = None
 
@@ -235,22 +233,19 @@ class underscore(object):
     detect = find
 
     def filter(self, func):
-        """
-        Return all the elements that pass a truth test.
+        """ Return all the elements that pass a truth test.
         """
         return self._wrap(filter(func, self.obj))
     select = filter
 
     def reject(self, func):
-        """
-        Return all the elements for which a truth test fails.
+        """ Return all the elements for which a truth test fails.
         """
         r = ifilterfalse(func, self.obj)
         return self._wrap(self._toOriginal(r))
 
     def all(self, func=None):
-        """
-        Determine whether all of the elements match a truth test.
+        """ Determine whether all of the elements match a truth test.
         """
         if func is None:
             func = lambda x, *args: x
@@ -265,8 +260,7 @@ class underscore(object):
     every = all
 
     def any(self, func=None):
-        """
-        Determine if at least one element in the object matches a truth test.
+        """ Determine if at least one element in the object matches a truth test.
         """
         if func is None:
             func = lambda x, *args: x
@@ -282,8 +276,7 @@ class underscore(object):
     some = any
 
     def include(self, target):
-        """
-        Determine if a given value is included in the array or object using `is`.
+        """ Determine if a given value is included in the array or object using `is`.
         """
         if self._clean.isDict():
             return self._wrap(target in self.obj.values())
@@ -292,8 +285,7 @@ class underscore(object):
     contains = include
 
     def invoke(self, method, *args):
-        """
-        Invoke a method (with arguments) on every item in a collection.
+        """ Invoke a method (with arguments) on every item in a collection.
         """
         def inv(value, *ar):
             if(_(method).isFunction() or _(method).isLambda() or _(method).isMethod()):
@@ -303,30 +295,26 @@ class underscore(object):
         return self._wrap(self._clean.map(inv))
 
     def pluck(self, key):
-        """
-        Convenience version of a common use case of `map`: fetching a property.
+        """ Convenience version of a common use case of `map`: fetching a property.
         """
         return self._wrap([x.get(key) for x in self.obj])
 
     def max(self):
-        """
-        Return the maximum element or (element-based computation).
+        """ Return the maximum element or (element-based computation).
         """
         if(self._clean.isDict()):
             return self._wrap(list())
         return self._wrap(max(self.obj))
 
     def min(self):
-        """
-        Return the minimum element (or element-based computation).
+        """ Return the minimum element (or element-based computation).
         """
         if(self._clean.isDict()):
             return self._wrap(list())
         return self._wrap(min(self.obj))
 
     def shuffle(self):
-        """
-        Shuffle an array.
+        """ Shuffle an array.
         """
         if(self._clean.isDict()):
             return self._wrap(list())
@@ -337,8 +325,7 @@ class underscore(object):
         return self._wrap(cloned)
 
     def sortBy(self, val=None):
-        """
-        Sort the object's values by a criterion produced by an iterator.
+        """ Sort the object's values by a criterion produced by an iterator.
         """
         if val is not None:
             if _(val).isString():
@@ -349,14 +336,12 @@ class underscore(object):
             return self._wrap(sorted(self.obj))
 
     def _lookupIterator(self, obj, val):
-        """
-        An internal function to generate lookup iterators.
+        """ An internal function to generate lookup iterators.
         """
         return val if _.isCallable(val) else lambda obj, *args: obj[val]
 
     def _group(self, obj, val, behavior):
-        """
-        An internal function used for aggregate "group by" operations.
+        """ An internal function used for aggregate "group by" operations.
         """
         ns = self.Namespace()
         ns.result = {}
@@ -419,14 +404,12 @@ class underscore(object):
         return self._wrap(low)
 
     def toArray(self):
-        """
-        Safely convert anything iterable into a real, live array.
+        """ Safely convert anything iterable into a real, live array.
         """
         return self._wrap(list(self.obj))
 
     def size(self):
-        """
-        Return the number of elements in an object.
+        """ Return the number of elements in an object.
         """
         return self._wrap(len(self.obj))
 
@@ -472,8 +455,7 @@ class underscore(object):
     tail = rest
 
     def compact(self):
-        """
-        Trim out all falsy values from an array.
+        """ Trim out all falsy values from an array.
         """
         return self._wrap(self._clean.filter(lambda x: x))
 
@@ -497,14 +479,12 @@ class underscore(object):
         return ns.output
 
     def flatten(self, shallow=None):
-        """
-        Return a completely flattened version of an array.
+        """ Return a completely flattened version of an array.
         """
         return self._wrap(self._flatten(self.obj, shallow))
 
     def without(self, *values):
-        """
-        Return a version of the array that does not contain the specified value(s).
+        """ Return a version of the array that does not contain the specified value(s).
         """
         if self._clean.isDict():
             newlist = {}
@@ -655,8 +635,7 @@ class underscore(object):
         return self._wrap(-1)
 
     def range(self, *args):
-        """
-        Generate an integer Array containing an arithmetic progression.
+        """ Generate an integer Array containing an arithmetic progression.
         """
         args = list(args)
         args.insert(0, self.obj)
@@ -682,8 +661,7 @@ class underscore(object):
         return self._wrap(self.obj)
 
     def memoize(self, hasher=None):
-        """
-        Memoize an expensive function by storing its results.
+        """ Memoize an expensive function by storing its results.
         """
         ns = self.Namespace()
         ns.memo = {}
@@ -830,8 +808,7 @@ class underscore(object):
         return self._wrap(composed)
 
     def after(self, func):
-        """
-        Returns a function that will only be executed after being called N times.
+        """ Returns a function that will only be executed after being called N times.
         """
         ns = self.Namespace()
         ns.times = self.obj
@@ -851,20 +828,17 @@ class underscore(object):
     """
 
     def keys(self):
-        """
-        Retrieve the names of an object's properties.
+        """ Retrieve the names of an object's properties.
         """
         return self._wrap(self.obj.keys())
 
     def values(self):
-        """
-        Retrieve the values of an object's properties.
+        """ Retrieve the values of an object's properties.
         """
         return self._wrap(self.obj.values())
 
     def functions(self):
-        """
-        Return a sorted list of the function names available on the object.
+        """ Return a sorted list of the function names available on the object.
         """
         names = []
 
@@ -876,8 +850,7 @@ class underscore(object):
     methods = functions
 
     def extend(self, *args):
-        """
-        Extend a given object with all the properties in passed-in object(s).
+        """ Extend a given object with all the properties in passed-in object(s).
         """
         args = list(args)
         for i in args:
@@ -886,8 +859,7 @@ class underscore(object):
         return self._wrap(self.obj)
 
     def pick(self, *args):
-        """
-        Return a copy of the object only containing the whitelisted properties.
+        """ Return a copy of the object only containing the whitelisted properties.
         """
         ns = self.Namespace()
         ns.result = {}
@@ -909,8 +881,7 @@ class underscore(object):
         return self._wrap(copy)
 
     def defaults(self, *args):
-        """
-        Fill in a given object with default properties.
+        """ Fill in a given object with default properties.
         """
         ns = self.Namespace
         ns.obj = self.obj
@@ -925,8 +896,7 @@ class underscore(object):
         return self._wrap(ns.obj)
 
     def clone(self):
-        """
-        Create a (shallow-cloned) duplicate of an object.
+        """ Create a (shallow-cloned) duplicate of an object.
         """
         import copy
         return self._wrap(copy.copy(self.obj))
@@ -941,8 +911,7 @@ class underscore(object):
         return self._wrap(self.obj)
 
     def isEqual(self, match):
-        """
-        Perform a deep comparison to check if two objects are equal.
+        """ Perform a deep comparison to check if two objects are equal.
         """
         return self._wrap(self.obj == match)
 
@@ -962,87 +931,73 @@ class underscore(object):
         return self._wrap(ret)
 
     def isElement(self):
-        """
-        No use in python
+        """ No use in python
         """
         return self._wrap(False)
 
     def isDict(self):
-        """
-        Check if given object is a dictionary DictType
+        """ Check if given object is a dictionary DictType
         """
         return self._wrap(type(self.obj) is DictType)
 
     def isTuple(self):
-        """
-        Check if given object is a Tuple TupleType
+        """ Check if given object is a Tuple TupleType
         """
         return self._wrap(type(self.obj) is TupleType)
 
     def isList(self):
-        """
-        Check if given object is a list ListType
+        """ Check if given object is a list ListType
         """
         return self._wrap(type(self.obj) is ListType)
 
     def isNone(self):
-        """
-        Check if the given object is NoneType
+        """ Check if the given object is NoneType
         """
         return self._wrap(type(self.obj) is NoneType)
 
     def isType(self):
-        """
-        Check if the given object is TypeType
+        """ Check if the given object is TypeType
         """
         return self._wrap(type(self.obj) is TypeType)
 
     def isBoolean(self):
-        """
-        Check if the given object is BooleanType
+        """ Check if the given object is BooleanType
         """
         return self._wrap(type(self.obj) is BooleanType)
     isBool = isBoolean
 
     def isInt(self):
-        """
-        Check if the given object is IntType
+        """ Check if the given object is IntType
         """
         return self._wrap(type(self.obj) is IntType)
 
     def isLong(self):
-        """
-        Check if the given object is LongType
+        """ Check if the given object is LongType
         """
         return self._wrap(type(self.obj) is LongType)
 
     def isFloat(self):
-        """
-        Check if the given object is FloatType
+        """ Check if the given object is FloatType
         """
         return self._wrap(type(self.obj) is FloatType)
 
     def isComplex(self):
-        """
-        Check if the given object is ComplexType
+        """ Check if the given object is ComplexType
         """
         return self._wrap(type(self.obj) is ComplexType)
 
     def isString(self):
-        """
-        Check if the given object is StringType
+        """ Check if the given object is StringType
         """
         return self._wrap(type(self.obj) is StringType)
 
     def isUnicode(self):
-        """
-        Check if the given object is UnicodeType
+        """ Check if the given object is UnicodeType
         """
         return self._wrap(type(self.obj) is UnicodeType)
 
     def isCallable(self):
-        """
-        Check if the given object is any of the function types
+        """ Check if the given object is any of the function types
         """
         return self._wrap(type(self.obj) is MethodType
                        or type(self.obj) is FunctionType
@@ -1052,134 +1007,112 @@ class underscore(object):
                        or type(self.obj) is UnboundMethodType)
 
     def isFunction(self):
-        """
-        Check if the given object is FunctionType
+        """ Check if the given object is FunctionType
         """
         return self._wrap(type(self.obj) is FunctionType)
 
     def isLambda(self):
-        """
-        Check if the given object is LambdaType
+        """ Check if the given object is LambdaType
         """
         return self._wrap(type(self.obj) is LambdaType)  # or type(self.obj) is FunctionType)
 
     def isGenerator(self):
-        """
-        Check if the given object is GeneratorType
+        """ Check if the given object is GeneratorType
         """
         return self._wrap(type(self.obj) is GeneratorType)
 
     def isCode(self):
-        """
-        Check if the given object is CodeType
+        """ Check if the given object is CodeType
         """
         return self._wrap(type(self.obj) is CodeType)
 
     def isClass(self):
-        """
-        Check if the given object is ClassType
+        """ Check if the given object is ClassType
         """
         return self._wrap(type(self.obj) is ClassType)
 
     def isInstance(self):
-        """
-        Check if the given object is InstanceType
+        """ Check if the given object is InstanceType
         """
         return self._wrap(type(self.obj) is InstanceType)
 
     def isMethod(self):
-        """
-        Check if the given object is MethodType
+        """ Check if the given object is MethodType
         """
         return self._wrap(type(self.obj) is MethodType)
 
     def isUnboundMethod(self):
-        """
-        Check if the given object is UnboundMethodType
+        """ Check if the given object is UnboundMethodType
         """
         return self._wrap(type(self.obj) is UnboundMethodType)
 
     def isBuiltinFunction(self):
-        """
-        Check if the given object is BuiltinFunctionType
+        """ Check if the given object is BuiltinFunctionType
         """
         return self._wrap(type(self.obj) is BuiltinFunctionType)
 
     def isBuiltinMethod(self):
-        """
-        Check if the given object is BuiltinMethodType
+        """ Check if the given object is BuiltinMethodType
         """
         return self._wrap(type(self.obj) is BuiltinMethodType)
 
     def isModule(self):
-        """
-        Check if the given object is ModuleType
+        """ Check if the given object is ModuleType
         """
         return self._wrap(type(self.obj) is ModuleType)
 
     def isFile(self):
-        """
-        Check if the given object is FileType
+        """ Check if the given object is FileType
         """
         return self._wrap(type(self.obj) is FileType)
 
     def isXRange(self):
-        """
-        Check if the given object is XRangeType
+        """ Check if the given object is XRangeType
         """
         return self._wrap(type(self.obj) is XRangeType)
 
     def isSlice(self):
-        """
-        Check if the given object is SliceType
+        """ Check if the given object is SliceType
         """
         return self._wrap(type(self.obj) is SliceType)
 
     def isEllipsis(self):
-        """
-        Check if the given object is EllipsisType
+        """ Check if the given object is EllipsisType
         """
         return self._wrap(type(self.obj) is EllipsisType)
 
     def isTraceback(self):
-        """
-        Check if the given object is TracebackType
+        """ Check if the given object is TracebackType
         """
         return self._wrap(type(self.obj) is TracebackType)
 
     def isFrame(self):
-        """
-        Check if the given object is FrameType
+        """ Check if the given object is FrameType
         """
         return self._wrap(type(self.obj) is FrameType)
 
     def isBuffer(self):
-        """
-        Check if the given object is BufferType
+        """ Check if the given object is BufferType
         """
         return self._wrap(type(self.obj) is BufferType)
 
     def isDictProxy(self):
-        """
-        Check if the given object is DictProxyType
+        """ Check if the given object is DictProxyType
         """
         return self._wrap(type(self.obj) is DictProxyType)
 
     def isNotImplemented(self):
-        """
-        Check if the given object is NotImplementedType
+        """ Check if the given object is NotImplementedType
         """
         return self._wrap(type(self.obj) is NotImplementedType)
 
     def isGetSetDescriptor(self):
-        """
-        Check if the given object is GetSetDescriptorType
+        """ Check if the given object is GetSetDescriptorType
         """
         return self._wrap(type(self.obj) is GetSetDescriptorType)
 
     def isMemberDescriptor(self):
-        """
-        Check if the given object is MemberDescriptorType
+        """ Check if the given object is MemberDescriptorType
         """
         return self._wrap(type(self.obj) is MemberDescriptorType)
 
@@ -1191,21 +1124,18 @@ class underscore(object):
         return self._wrap(hasattr(self.obj, key))
 
     def join(self, glue=" "):
-        """
-        Javascript's join implementation
+        """ Javascript's join implementation
         """
         j = glue.join([str(x) for x in self.obj])
         return self._wrap(j)
 
     def identity(self, *args):
-        """
-        Keep the identity function around for default iterators.
+        """ Keep the identity function around for default iterators.
         """
         return self._wrap(self.obj)
 
     def times(self, func, *args):
-        """
-        Run a function **n** times.
+        """ Run a function **n** times.
         """
         n = self.obj
         i = 0
@@ -1265,8 +1195,7 @@ class underscore(object):
     }
 
     def escape(self):
-        """
-        Escape a string for HTML interpolation.
+        """ Escape a string for HTML interpolation.
         """
         # & must be handled first
         self.obj = self.obj.replace("&", self._html_escape_table["&"])
@@ -1427,15 +1356,13 @@ class underscore(object):
         return _wrap
 
     def chain(self):
-        """
-        Add a "chain" function, which will delegate to the wrapper.
+        """ Add a "chain" function, which will delegate to the wrapper.
         """
         self.chained = True
         return self
 
     def value(self):
-        """
-        returns the object instead of instance
+        """ returns the object instead of instance
         """
         if self._wrapped is not self.Null:
             return self._wrapped
@@ -1444,8 +1371,7 @@ class underscore(object):
 
     @staticmethod
     def makeStatic():
-        """
-        Provide static access to underscore class
+        """ Provide static access to underscore class
         """
         for eachMethod in inspect.getmembers(underscore, predicate=inspect.ismethod):
             m = eachMethod[0]

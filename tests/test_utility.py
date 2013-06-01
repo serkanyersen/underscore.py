@@ -73,9 +73,9 @@ class TestUtility(unittest.TestCase):
         result = namespaceCollisionTemplate({
             "pageCount": 3,
             "thumbnails": {
-              1: "p1-thumbnail.gif",
-              2: "p2-thumbnail.gif",
-              3: "p3-thumbnail.gif"
+                1: "p1-thumbnail.gif",
+                2: "p2-thumbnail.gif",
+                3: "p3-thumbnail.gif"
             }
         })
 
@@ -108,8 +108,8 @@ class TestUtility(unittest.TestCase):
         # self.assertEqual(stooge.template(), "I'm Moe")
 
         _.templateSettings = {
-           "evaluate": r"\{\{([\s\S]+?)\}\}",
-           "interpolate": r"\{\{=([\s\S]+?)\}\}"
+            "evaluate": r"\{\{([\s\S]+?)\}\}",
+            "interpolate": r"\{\{=([\s\S]+?)\}\}"
         }
 
         custom = _.template("<ul>{{ for key in people: }}<li>{{= people[key] }}</li>{{ endfor }}</ul>")
