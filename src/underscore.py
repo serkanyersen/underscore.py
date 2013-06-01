@@ -71,13 +71,14 @@ class underscore(object):
     Null = "__Null__"
     """
     Since we are working with the native types
-    I cannot compare anything with None, so I use a Substitute type for checking
+    I can't compare anything with None, so I use a Substitute type for checking
     """
 
     _wrapped = Null
     """
-    When object is in chained state, This property will contain the latest processed
-    Value of passed object, I assign it no Null so I can check against None results
+    When object is in chained state, This property will contain the latest
+    processed Value of passed object, I assign it no Null so I can check
+    against None results
     """
 
     def __init__(self, obj):
@@ -190,7 +191,9 @@ class underscore(object):
     collect = map
 
     def reduce(self, func, memo=None):
-        """ **Reduce** builds up a single result from a list of values, aka `inject`, or foldl
+        """
+        **Reduce** builds up a single result from a list of values,
+        aka `inject`, or foldl
         """
         if memo is None:
             memo = []
@@ -220,7 +223,9 @@ class underscore(object):
     foldr = reduceRight
 
     def find(self, func):
-        """ Return the first value which passes a truth test. Aliased as `detect`.
+        """
+        Return the first value which passes a truth test.
+        Aliased as `detect`.
         """
         self.ftmp = None
 
@@ -260,7 +265,9 @@ class underscore(object):
     every = all
 
     def any(self, func=None):
-        """ Determine if at least one element in the object matches a truth test.
+        """
+        Determine if at least one element in the object
+        matches a truth test.
         """
         if func is None:
             func = lambda x, *args: x
@@ -276,7 +283,9 @@ class underscore(object):
     some = any
 
     def include(self, target):
-        """ Determine if a given value is included in the array or object using `is`.
+        """
+        Determine if a given value is included in the
+        array or object using `is`.
         """
         if self._clean.isDict():
             return self._wrap(target in self.obj.values())
@@ -288,14 +297,20 @@ class underscore(object):
         """ Invoke a method (with arguments) on every item in a collection.
         """
         def inv(value, *ar):
-            if(_(method).isFunction() or _(method).isLambda() or _(method).isMethod()):
+            if (
+                _(method).isFunction() or
+                _(method).isLambda() or
+                _(method).isMethod()
+            ):
                 return method(value, *args)
             else:
                 return getattr(value, method)(*args)
         return self._wrap(self._clean.map(inv))
 
     def pluck(self, key):
-        """ Convenience version of a common use case of `map`: fetching a property.
+        """
+        Convenience version of a common use case of
+        `map`: fetching a property.
         """
         return self._wrap([x.get(key) for x in self.obj])
 
@@ -329,7 +344,8 @@ class underscore(object):
         """
         if val is not None:
             if _(val).isString():
-                return self._wrap(sorted(self.obj, key=lambda x, *args: x.get(val)))
+                return self._wrap(sorted(self.obj, key=lambda x,
+                                  *args: x.get(val)))
             else:
                 return self._wrap(sorted(self.obj, val))
         else:
@@ -357,8 +373,8 @@ class underscore(object):
 
     def groupBy(self, val):
         """
-        Groups the object's values by a criterion. Pass either a string attribute
-        to group by, or a function that returns the criterion.
+        Groups the object's values by a criterion. Pass either a string
+        attribute to group by, or a function that returns the criterion.
         """
 
         def by(result, key, value):
@@ -389,7 +405,8 @@ class underscore(object):
     def sortedIndex(self, obj, iterator=lambda x: x):
         """
         Use a comparator function to figure out the smallest index at which
-        an object should be inserted so as to maintain order. Uses binary search.
+        an object should be inserted so as to maintain order.
+        Uses binary search.
         """
         array = self.obj
         value = iterator(obj)
@@ -415,9 +432,9 @@ class underscore(object):
 
     def first(self, n=1):
         """
-        Get the first element of an array. Passing **n** will return the first N
-        values in the array. Aliased as `head` and `take`. The **guard** check
-        allows it to work with `_.map`.
+        Get the first element of an array. Passing **n** will return the
+        first N values in the array. Aliased as `head` and `take`.
+        The **guard** check allows it to work with `_.map`.
         """
         res = self.obj[0:n]
         if len(res) is 1:
@@ -427,17 +444,18 @@ class underscore(object):
 
     def initial(self, n=1):
         """
-        Returns everything but the last entry of the array. Especially useful on
-        the arguments object. Passing **n** will return all the values in
-        the array, excluding the last N. The **guard** check allows it to work with
-        `_.map`.
+        Returns everything but the last entry of the array.
+        Especially useful on the arguments object.
+        Passing **n** will return all the values in the array, excluding the
+        last N. The **guard** check allows it to work with `_.map`.
         """
         return self._wrap(self.obj[0:-n])
 
     def last(self, n=1):
         """
         Get the last element of an array. Passing **n** will return the last N
-        values in the array. The **guard** check allows it to work with `_.map`.
+        values in the array.
+        The **guard** check allows it to work with `_.map`.
         """
         res = self.obj[-n:]
         if len(res) is 1:
@@ -447,9 +465,10 @@ class underscore(object):
     def rest(self, n=1):
         """
         Returns everything but the first entry of the array. Aliased as `tail`.
-        Especially useful on the arguments object. Passing an **index** will return
-        the rest of the values in the array from that index onward. The **guard**
-        check allows it to work with `_.map`.
+        Especially useful on the arguments object.
+        Passing an **index** will return the rest of the values in the
+        array from that index onward.
+        The **guard** check allows it to work with `_.map`.
         """
         return self._wrap(self.obj[n:])
     tail = rest
@@ -484,7 +503,9 @@ class underscore(object):
         return self._wrap(self._flatten(self.obj, shallow))
 
     def without(self, *values):
-        """ Return a version of the array that does not contain the specified value(s).
+        """
+        Return a version of the array that does not
+        contain the specified value(s).
         """
         if self._clean.isDict():
             newlist = {}
@@ -515,7 +536,8 @@ class underscore(object):
             initial = _(ns.array).map(iterator)
 
         def by(memo, value, index):
-            if (_.last(memo) != value or not len(memo)) if isSorted else not _.include(memo, value):
+            if ((_.last(memo) != value or
+                 not len(memo)) if isSorted else not _.include(memo, value)):
                 memo.append(value)
                 ns.results.append(ns.array[index])
 
@@ -531,8 +553,8 @@ class underscore(object):
 
     def union(self, *args):
         """
-        Produce an array that contains the union: each distinct element from all of
-        the passed-in arrays.
+        Produce an array that contains the union: each distinct element
+        from all of the passed-in arrays.
         """
         # setobj = Set(self.obj)
         # for i, v in enumerate(args):
@@ -581,8 +603,8 @@ class underscore(object):
 
     def zipObject(self, values):
         """
-        Zip together two arrays -- an array of keys and an array of values -- into
-        a single object.
+        Zip together two arrays -- an array of keys and an array
+        of values -- into a single object.
         """
         result = {}
         keys = self.obj
@@ -647,16 +669,18 @@ class underscore(object):
 
     def bind(self, context):
         """
-        Create a function bound to a given object (assigning `this`, and arguments,
-        optionally). Binding with arguments is also known as `curry`.
+        Create a function bound to a given object (assigning `this`,
+        and arguments, optionally).
+        Binding with arguments is also known as `curry`.
         """
         return self._wrap(self.obj)
     curry = bind
 
     def bindAll(self, *args):
         """
-        Bind all of an object's methods to that object. Useful for ensuring that
-        all callbacks defined on an object belong to it.
+        Bind all of an object's methods to that object.
+        Useful for ensuring that all callbacks defined on an
+        object belong to it.
         """
         return self._wrap(self.obj)
 
@@ -691,17 +715,17 @@ class underscore(object):
 
     def defer(self, *args):
         """
-        Defers a function, scheduling it to run after the current call stack has
-        cleared.
+        Defers a function, scheduling it to run after
+        the current call stack has cleared.
         """
-        ## I know! this is not really a defer in python. I'm open to suggestions
-        #########################################################################
+        ## I know! this isn't really a defer in python. I'm open to suggestions
+        #######################################################################
         return self.delay(1, *args)
 
     def throttle(self, wait):
         """
-        Returns a function, that, when invoked, will only be triggered at most once
-        during a given window of time.
+        Returns a function, that, when invoked, will only be triggered
+        at most once during a given window of time.
         """
         ns = self.Namespace()
         ns.timeout = None
@@ -738,10 +762,10 @@ class underscore(object):
     # https://gist.github.com/2871026
     def debounce(self, wait, immediate=None):
         """
-        Returns a function, that, as long as it continues to be invoked, will not
-        be triggered. The function will be called after it stops being called for
-        N milliseconds. If `immediate` is passed, trigger the function on the
-        leading edge, instead of the trailing.
+        Returns a function, that, as long as it continues to be invoked,
+        will not be triggered. The function will be called after it stops
+        being called for N milliseconds. If `immediate` is passed, trigger
+        the function on the leading edge, instead of the trailing.
         """
         wait = (float(wait) / float(1000))
 
@@ -758,8 +782,8 @@ class underscore(object):
 
     def once(self):
         """
-        Returns a function that will be executed at most one time, no matter how
-        often you call it. Useful for lazy initialization.
+        Returns a function that will be executed at most one time,
+        no matter how often you call it. Useful for lazy initialization.
         """
         ns = self.Namespace()
         ns.memo = None
@@ -808,7 +832,9 @@ class underscore(object):
         return self._wrap(composed)
 
     def after(self, func):
-        """ Returns a function that will only be executed after being called N times.
+        """
+        Returns a function that will only be executed after being
+        called N times.
         """
         ns = self.Namespace()
         ns.times = self.obj
@@ -850,7 +876,9 @@ class underscore(object):
     methods = functions
 
     def extend(self, *args):
-        """ Extend a given object with all the properties in passed-in object(s).
+        """
+        Extend a given object with all the properties in
+        passed-in object(s).
         """
         args = list(args)
         for i in args:
@@ -859,7 +887,9 @@ class underscore(object):
         return self._wrap(self.obj)
 
     def pick(self, *args):
-        """ Return a copy of the object only containing the whitelisted properties.
+        """
+        Return a copy of the object only containing the
+        whitelisted properties.
         """
         ns = self.Namespace()
         ns.result = {}
@@ -1000,11 +1030,11 @@ class underscore(object):
         """ Check if the given object is any of the function types
         """
         return self._wrap(type(self.obj) is MethodType
-                       or type(self.obj) is FunctionType
-                       or type(self.obj) is LambdaType
-                       or type(self.obj) is BuiltinMethodType
-                       or type(self.obj) is BuiltinFunctionType
-                       or type(self.obj) is UnboundMethodType)
+                          or type(self.obj) is FunctionType
+                          or type(self.obj) is LambdaType
+                          or type(self.obj) is BuiltinMethodType
+                          or type(self.obj) is BuiltinFunctionType
+                          or type(self.obj) is UnboundMethodType)
 
     def isFunction(self):
         """ Check if the given object is FunctionType
@@ -1014,7 +1044,7 @@ class underscore(object):
     def isLambda(self):
         """ Check if the given object is LambdaType
         """
-        return self._wrap(type(self.obj) is LambdaType)  # or type(self.obj) is FunctionType)
+        return self._wrap(type(self.obj) is LambdaType)
 
     def isGenerator(self):
         """ Check if the given object is GeneratorType
@@ -1118,8 +1148,8 @@ class underscore(object):
 
     def has(self, key):
         """
-        Shortcut function for checking if an object has a given property directly
-        on itself (in other words, not on a prototype).
+        Shortcut function for checking if an object has a
+        given property directly on itself (in other words, not on a prototype).
         """
         return self._wrap(hasattr(self.obj, key))
 
@@ -1248,8 +1278,8 @@ class underscore(object):
     def template(self, data=None, settings=None):
         """
         Python micro-templating, similar to John Resig's implementation.
-        Underscore templating handles arbitrary delimiters, preserves whitespace,
-        and correctly escapes quotes within interpolated code.
+        Underscore templating handles arbitrary delimiters, preserves
+        whitespace, and correctly escapes quotes within interpolated code.
         """
         if settings is None:
             settings = {}
@@ -1312,25 +1342,30 @@ class underscore(object):
             if code.startswith("end"):
                 return "')\n" + indent(-1) + "ns.__p += ('"
             elif code.endswith(':'):
-                return "')\n" + indent() + unescape(code) + "\n" + indent(+1) + "ns.__p += ('"
+                return "')\n" + indent() + unescape(code) + \
+                       "\n" + indent(+1) + "ns.__p += ('"
             else:
-                return "')\n" + indent() + unescape(code) + "\n" + indent() + "ns.__p += ('"
+                return "')\n" + indent() + unescape(code) + \
+                       "\n" + indent() + "ns.__p += ('"
 
         def escape(matchobj):
             key = (matchobj.group(1).decode('string-escape')).strip()
             return "' + _.escape(str(" + unescape(key) + " or '')) + '"
 
-        source = indent() + 'class closure(object):\n    pass # for full closure support\n'
+        source = indent() + 'class closure(object):\n    pass' + \
+                            ' # for full closure support\n'
         source += indent() + 'ns = closure()\n'
         source += indent() + "ns.__p = ''\n"
         #src = re.sub("^[\'\"]|[\'\"]$", "", ("%r" % src))
         src = re.sub(settings.get("escaper"), escapes, src)
-        source += indent() + "ns.__p += ('" + re.sub(settings.get('escape'), escape, src) + "')\n"
+        source += indent() + "ns.__p += ('" + \
+            re.sub(settings.get('escape'), escape, src) + "')\n"
         source = re.sub(settings.get('interpolate'), interpolate, source)
         source = re.sub(settings.get('evaluate'), evaluate, source)
         source += indent() + 'return ns.__p.decode("string_escape")\n'
 
-        f = self.create_function(settings.get("variable") or "obj=None", source)
+        f = self.create_function(settings.get("variable")
+                                 or "obj=None", source)
 
         if data is not None:
             return f(data)
@@ -1373,7 +1408,8 @@ class underscore(object):
     def makeStatic():
         """ Provide static access to underscore class
         """
-        for eachMethod in inspect.getmembers(underscore, predicate=inspect.ismethod):
+        for eachMethod in inspect.getmembers(underscore,
+                                             predicate=inspect.ismethod):
             m = eachMethod[0]
             if not hasattr(_, m):
                 def caller(a):
