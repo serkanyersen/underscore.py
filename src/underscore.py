@@ -63,7 +63,7 @@ class underscore(object):
     """ Passed object
     """
 
-    VERSION = "0.1.2"
+    VERSION = "0.1.3"
 
     chained = False
     """ If the object is in a chained state or not
