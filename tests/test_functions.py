@@ -41,18 +41,18 @@ class TestStructure(unittest.TestCase):
         def func():
             ns.delayed = True
 
-        _.delay(func, 50)
+        _.delay(func, 150)
 
         def checkFalse():
             self.assertFalse(ns.delayed)
-            print "ASYNC: delay. OK"
+            print ("\nASYNC: delay. OK")
 
         def checkTrue():
             self.assertTrue(ns.delayed)
-            print "ASYNC: delay. OK"
+            print ("\nASYNC: delay. OK")
 
-        Timer(0.03, checkFalse).start()
-        Timer(0.07, checkTrue).start()
+        Timer(0.05, checkFalse).start()
+        Timer(0.20, checkTrue).start()
 
     def test_defer(self):
         ns = self.Namespace()
@@ -65,7 +65,7 @@ class TestStructure(unittest.TestCase):
 
         def deferCheck():
             self.assertTrue(ns.deferred, "deferred the function")
-            print "ASYNC: defer. OK"
+            print ("\nASYNC: defer. OK")
 
         _.delay(deferCheck, 50)
 
@@ -85,15 +85,15 @@ class TestStructure(unittest.TestCase):
         Timer(0.14, throttledIncr).start()
         Timer(0.19, throttledIncr).start()
         Timer(0.22, throttledIncr).start()
-        Timer(0.24, throttledIncr).start()
+        Timer(0.34, throttledIncr).start()
 
         def checkCounter1():
             self.assertEqual(ns.counter, 1, "incr was called immediately")
-            print "ASYNC: throttle. OK"
+            print ("ASYNC: throttle. OK")
 
         def checkCounter2():
             self.assertEqual(ns.counter, 4, "incr was throttled")
-            print "ASYNC: throttle. OK"
+            print ("ASYNC: throttle. OK")
 
         _.delay(checkCounter1, 90)
         _.delay(checkCounter2, 400)
@@ -105,7 +105,7 @@ class TestStructure(unittest.TestCase):
         def incr():
             ns.counter += 1
 
-        debouncedIncr = _.debounce(incr, 50)
+        debouncedIncr = _.debounce(incr, 120)
         debouncedIncr()
         debouncedIncr()
         debouncedIncr()
@@ -117,9 +117,9 @@ class TestStructure(unittest.TestCase):
 
         def checkCounter():
             self.assertEqual(1, ns.counter, "incr was debounced")
-            print "ASYNC: debounce. OK"
+            print ("ASYNC: debounce. OK")
 
-        _.delay(checkCounter, 220)
+        _.delay(checkCounter, 300)
 
     def test_once(self):
         ns = self.Namespace()
@@ -187,6 +187,12 @@ class TestStructure(unittest.TestCase):
         self.assertEqual(testAfter(5, 4), 0, "after(N) should not fire unless called N times")
         self.assertEqual(testAfter(0, 0), 1, "after(0) should fire immediately")
 
+    def test_partial(self):
+        def func(*args):
+            return ' '.join(args)
+        pfunc = _.partial(func, 'a', 'b', 'c')
+        self.assertEqual(pfunc('d', 'e'), 'a b c d e')
+
 if __name__ == "__main__":
-    print "run these tests by executing `python -m unittest discover` in unittests folder"
+    print ("run these tests by executing `python -m unittest discover` in unittests folder")
     unittest.main()

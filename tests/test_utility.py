@@ -2,6 +2,7 @@ import unittest
 from unittesthelper import init
 init()  # will let you import modules from upper folder
 from src.underscore import _
+import math
 
 
 class TestUtility(unittest.TestCase):
@@ -15,6 +16,21 @@ class TestUtility(unittest.TestCase):
     def test_identity(self):
         moe = {"name": 'moe'}
         self.assertEqual(moe, _.identity(moe), "moe is the same as his identity")
+
+    def test_random(self):
+        array = _.range(1000)
+        mi = math.pow(2, 31)
+        ma = math.pow(2, 62)
+        def check(*args):
+            return _.random(mi, ma) >= mi
+        result = _.every(array, check)
+        self.assertTrue(result, "should produce a random number greater than or equal to the minimum number")
+
+        def check2(*args):
+            r = _.random(ma)
+            return r >= 0 and r <= ma
+        result = _.every(array, check2)
+        self.assertTrue(result, "should produce a random number when passed max_number")
 
     def test_uniqueId(self):
         ns = self.Namespace()
@@ -204,5 +220,5 @@ class TestUtility(unittest.TestCase):
         templateEscaped({"f": test2})
 
 if __name__ == "__main__":
-    print "run these tests by executing `python -m unittest discover` in unittests folder"
+    print ("run these tests by executing `python -m unittest discover` in unittests folder")
     unittest.main()

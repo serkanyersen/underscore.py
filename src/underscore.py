@@ -4,6 +4,7 @@ from types import *
 from itertools import ifilterfalse
 import re
 import functools
+import random
 from sets import Set
 from threading import Timer
 
@@ -314,6 +315,34 @@ class underscore(object):
         """
         return self._wrap([x.get(key) for x in self.obj])
 
+    def where(self, attrs=None, first=False):
+        """
+        Convenience version of a common use case of `filter`: selecting only objects
+        containing specific `key:value` pairs.
+        """
+        if attrs is None:
+            return None if first is True else []
+
+        method = _.find if first else _.filter
+
+        def by(val, *args):
+            for key, value in attrs.items():
+                try:
+                    if attrs[key] != val[key]:
+                        return False
+                except KeyError:
+                    return False
+                return True
+
+        return self._wrap(method(self.obj, by))
+
+    def findWhere(self, attrs=None):
+        """
+        Convenience version of a common use case of `find`: getting the first object
+        containing specific `key:value` pairs.
+        """
+        return self._wrap(self._clean.where(attrs, True))
+
     def max(self):
         """ Return the maximum element or (element-based computation).
         """
@@ -335,7 +364,7 @@ class underscore(object):
             return self._wrap(list())
 
         cloned = self.obj[:]
-        import random
+
         random.shuffle(cloned)
         return self._wrap(cloned)
 
@@ -369,6 +398,8 @@ class underscore(object):
 
         _.each(obj, e)
 
+        if len(ns.result) == 1:
+            return ns.result[0]
         return ns.result
 
     def groupBy(self, val):
@@ -381,6 +412,21 @@ class underscore(object):
             if key not in result:
                 result[key] = []
             result[key].append(value)
+
+        res = self._group(self.obj, val, by)
+
+        return self._wrap(res)
+
+    def indexBy(self, val=None):
+        """
+        Indexes the object's values by a criterion, similar to `groupBy`, but for
+        when you know that your index values will be unique.
+        """
+        if val is None:
+            val = lambda *args: args[0]
+
+        def by(result, key, value):
+            result[key] = value
 
         res = self._group(self.obj, val, by)
 
@@ -676,6 +722,17 @@ class underscore(object):
         return self._wrap(self.obj)
     curry = bind
 
+    def partial(self, *args):
+        """
+        Partially apply a function by creating a version that has had some of its
+        arguments pre-filled, without changing its dynamic `this` context.
+        """
+        def part(*args2):
+            args3 = args + args2
+            return self.obj(*args3)
+
+        return self._wrap(part)
+
     def bindAll(self, *args):
         """
         Bind all of an object's methods to that object.
@@ -862,6 +919,26 @@ class underscore(object):
         """ Retrieve the values of an object's properties.
         """
         return self._wrap(self.obj.values())
+
+    def pairs(self):
+        """ Convert an object into a list of `[key, value]` pairs.
+        """
+        keys = self._clean.keys()
+        pairs = []
+        for key in keys:
+            pairs.append([key, self.obj[key]])
+
+        return self._wrap(pairs)
+
+    def invert(self):
+        """ Invert the keys and values of an object. The values must be serializable.
+        """
+        keys = self._clean.keys()
+        inverted = {}
+        for key in keys:
+            inverted[self.obj[key]] = key
+
+        return self._wrap(inverted)
 
     def functions(self):
         """ Return a sorted list of the function names available on the object.
@@ -1175,6 +1252,15 @@ class underscore(object):
             i += 1
 
         return self._wrap(func)
+
+    def random(self, max_number=None):
+        """ Return a random integer between min and max (inclusive).
+        """
+        min_number = self.obj
+        if max_number is None:
+            min_number = 0
+            max_number = self.obj
+        return random.randrange(min_number, max_number)
 
     def result(self, property, *args):
         """

@@ -182,6 +182,51 @@ class TestCollections(unittest.TestCase):
         self.assertEqual(_.size({"one": 1, "two": 2, "three": 3}), 3, 'can compute the size of an object')
         self.assertEqual(_.size([1, 2, 3]), 3, 'can compute the size of an array')
 
+    def test_where(self):
+        List = [{"a": 1, "b": 2}, {"a": 2, "b": 2}, {"a": 1, "b": 3}, {"a": 1, "b": 4}]
+        result = _.where(List, {"a": 1})
+        self.assertEqual(_.size(result), 3)
+        self.assertEqual(result[-1]['b'], 4)
+
+        result = _.where(List, {"a": 1}, True)
+        self.assertEqual(result["b"], 2)
+
+        result = _.where(List, {"a": 1}, False)
+        self.assertEqual(_.size(result), 3)
+
+    def test_findWhere(self):
+        List = [{"a": 1, "b": 2}, {"a": 2, "b": 2}, {"a": 1, "b": 3}, {"a": 1, "b": 4}]
+        result = _.findWhere(List, {"a": 1})
+        self.assertEqual(result["a"], 1)
+        self.assertEqual(result["b"], 2)
+
+        result = _.findWhere(List, {"b": 4})
+        self.assertEqual(result["a"], 1)
+        self.assertEqual(result["b"], 4)
+
+        result = _.findWhere(List, {"c": 1})
+        self.assertEqual(result, None)
+
+        result = _.findWhere([], {"c": 1})
+        self.assertEqual(result, None)
+
+    def test_indexBy(self):
+        parity = _.indexBy([1, 2, 3, 4, 5], lambda num, *args: num % 2 == 0)
+        self.assertEqual(parity[True], 4)
+        self.assertEqual(parity[False], 5)
+
+        llist = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
+        grouped = _.indexBy(llist, lambda x, *args: len(x))
+        self.assertEqual(grouped[3], 'ten')
+        self.assertEqual(grouped[4], 'nine')
+        self.assertEqual(grouped[5], 'eight')
+
+        array = [1, 2, 1, 2, 3]
+        grouped = _.indexBy(array);
+        self.assertEqual(grouped[1], 1)
+        self.assertEqual(grouped[2], 2)
+        self.assertEqual(grouped[3], 3)
+
 if __name__ == "__main__":
-    print "run these tests by executing `python -m unittest discover` in unittests folder"
+    print ("run these tests by executing `python -m unittest discover` in unittests folder")
     unittest.main()

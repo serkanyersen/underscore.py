@@ -21,5 +21,5 @@ class TestStructure(unittest.TestCase):
         self.assertEqual(6, u.value(), "value should have returned")
 
 if __name__ == "__main__":
-    print "run these tests by executing `python -m unittest discover` in unittests folder"
+    print ("run these tests by executing `python -m unittest discover` in unittests folder")
     unittest.main()

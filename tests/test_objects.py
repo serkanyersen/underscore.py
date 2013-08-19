@@ -122,6 +122,17 @@ class TestObjects(unittest.TestCase):
         returned = _([1, 2, 3]).chain().map(lambda n, *args: n * 2).max().tap(interceptor).value()
         self.assertTrue(returned == 6 and ns.intercepted == 6, 'can use tapped objects in a chain')
 
+    def test_pairs(self):
+        r = _.pairs({"one": 1, "two": 2})
+        # Python alphabetically orders the keys automatically
+        self.assertEqual(r, [["two", 2], ["one", 1]], 'can convert an object into pairs')
+
+    def test_invert(self):
+        obj = {"first": 'Moe', "second": 'Larry', "third": 'Curly'}
+        r = _(obj).chain().invert().keys().join(' ').value()
+        self.assertEqual(r, 'Larry Moe Curly', 'can invert an object')
+        self.assertEqual(_.invert(_.invert(obj)), obj, "two inverts gets you back where you started")
+
 if __name__ == "__main__":
-    print "run these tests by executing `python -m unittest discover` in unittests folder"
+    print ("run these tests by executing `python -m unittest discover` in unittests folder")
     unittest.main()
