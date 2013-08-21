@@ -1,2 +1,2 @@
-from underscore import _
+from .underscore import _
 __all__ = ["_"]
