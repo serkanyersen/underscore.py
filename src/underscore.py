@@ -373,7 +373,7 @@ class underscore(object):
                 return self._wrap(sorted(self.obj, key=lambda x,
                                   *args: x.get(val)))
             else:
-                return self._wrap(sorted(self.obj, val))
+                return self._wrap(sorted(self.obj, key=val))
         else:
             return self._wrap(sorted(self.obj))
 
