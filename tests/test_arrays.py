@@ -133,5 +133,5 @@ class TestArrays(unittest.TestCase):
         self.assertEqual(_.range(0, -10, -1), [0, -1, -2, -3, -4, -5, -6, -7, -8, -9], 'final example in the Python docs')
 
 if __name__ == "__main__":
-    print "run these tests by executing `python -m unittest discover` in unittests folder"
+    print ("run these tests by executing `python -m unittest discover` in unittests folder")
     unittest.main()

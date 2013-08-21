@@ -1459,9 +1459,9 @@ class underscore(object):
         ns = self.Namespace()
         try:
             code = compile(source, '', 'exec')
-            exec code in globals(), locals()
+            exec(code) in globals(), locals()
         except:
-            print source
+            print(source)
             raise Exception("template error")
         ns.func = func
 
