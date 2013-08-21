@@ -218,7 +218,7 @@ class underscore(object):
         #foldr = lambda f, i: lambda s: reduce(f, s, i)
         x = self.obj[:]
         x.reverse()
-        return self._wrap(reduce(func, x))
+        return self._wrap(functools.reduce(func, x))
     foldr = reduceRight
 
     def find(self, func):
