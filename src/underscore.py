@@ -1040,75 +1040,72 @@ class underscore(object):
         return self._wrap(False)
 
     def isDict(self):
-        """ Check if given object is a dictionary DictType
+        """ Check if given object is a dictionary
         """
-        return self._wrap(type(self.obj) is DictType)
+        return self._wrap(type(self.obj) is dict)
 
     def isTuple(self):
-        """ Check if given object is a Tuple TupleType
+        """ Check if given object is a tuple
         """
-        return self._wrap(type(self.obj) is TupleType)
+        return self._wrap(type(self.obj) is tuple)
 
     def isList(self):
-        """ Check if given object is a list ListType
+        """ Check if given object is a list
         """
-        return self._wrap(type(self.obj) is ListType)
+        return self._wrap(type(self.obj) is list)
 
     def isNone(self):
-        """ Check if the given object is NoneType
+        """ Check if the given object is None
         """
-        return self._wrap(type(self.obj) is NoneType)
+        return self._wrap(self.obj is None)
 
     def isType(self):
-        """ Check if the given object is TypeType
+        """ Check if the given object is a type
         """
-        return self._wrap(type(self.obj) is TypeType)
+        return self._wrap(type(self.obj) is type)
 
     def isBoolean(self):
-        """ Check if the given object is BooleanType
+        """ Check if the given object is a boolean
         """
-        return self._wrap(type(self.obj) is BooleanType)
+        return self._wrap(type(self.obj) is bool)
     isBool = isBoolean
 
     def isInt(self):
-        """ Check if the given object is IntType
+        """ Check if the given object is an int
         """
-        return self._wrap(type(self.obj) is IntType)
+        return self._wrap(type(self.obj) is int)
 
+    # :DEPRECATED: Python 2 only.
+    # 3 removes this.
     def isLong(self):
-        """ Check if the given object is LongType
+        """ Check if the given object is a long
         """
-        return self._wrap(type(self.obj) is LongType)
+        return self._wrap(type(self.obj) is long)
 
     def isFloat(self):
-        """ Check if the given object is FloatType
+        """ Check if the given object is a float
         """
-        return self._wrap(type(self.obj) is FloatType)
+        return self._wrap(type(self.obj) is float)
 
     def isComplex(self):
-        """ Check if the given object is ComplexType
+        """ Check if the given object is a complex
         """
-        return self._wrap(type(self.obj) is ComplexType)
+        return self._wrap(type(self.obj) is complex)
 
     def isString(self):
-        """ Check if the given object is StringType
+        """ Check if the given object is a string
         """
-        return self._wrap(type(self.obj) is StringType)
+        return self._wrap(type(self.obj) is str)
 
     def isUnicode(self):
-        """ Check if the given object is UnicodeType
+        """ Check if the given object is a unicode string
         """
-        return self._wrap(type(self.obj) is UnicodeType)
+        return self._wrap(type(self.obj) is unicode)
 
     def isCallable(self):
         """ Check if the given object is any of the function types
         """
-        return self._wrap(type(self.obj) is MethodType
-                          or type(self.obj) is FunctionType
-                          or type(self.obj) is LambdaType
-                          or type(self.obj) is BuiltinMethodType
-                          or type(self.obj) is BuiltinFunctionType
-                          or type(self.obj) is UnboundMethodType)
+        return self._wrap(callable(self.obj))
 
     def isFunction(self):
         """ Check if the given object is FunctionType
@@ -1133,8 +1130,10 @@ class underscore(object):
     def isClass(self):
         """ Check if the given object is ClassType
         """
-        return self._wrap(type(self.obj) is ClassType)
+        return self._wrap(inspect.isclass(self.obj))
 
+    # :DEPRECATED: Python 2 only.
+    # 3 removes this.
     def isInstance(self):
         """ Check if the given object is InstanceType
         """
@@ -1143,8 +1142,10 @@ class underscore(object):
     def isMethod(self):
         """ Check if the given object is MethodType
         """
-        return self._wrap(type(self.obj) is MethodType)
+        return self._wrap(inspect.ismethod(self.obj))
 
+    # :DEPRECATED: Python 2 only.
+    # 3 removes this.
     def isUnboundMethod(self):
         """ Check if the given object is UnboundMethodType
         """
@@ -1166,10 +1167,17 @@ class underscore(object):
         return self._wrap(type(self.obj) is ModuleType)
 
     def isFile(self):
-        """ Check if the given object is FileType
+        """ Check if the given object is a file
         """
-        return self._wrap(type(self.obj) is FileType)
+        try:
+            filetype = file
+        except NameError:
+            filetype = io.IOBase
 
+        return self._wrap(type(self.obj) is filetype)
+
+    # :DEPRECATED: Python 2 only.
+    # 3 removes this.
     def isXRange(self):
         """ Check if the given object is XRangeType
         """
@@ -1178,12 +1186,12 @@ class underscore(object):
     def isSlice(self):
         """ Check if the given object is SliceType
         """
-        return self._wrap(type(self.obj) is SliceType)
+        return self._wrap(type(self.obj) is type(slice))
 
     def isEllipsis(self):
         """ Check if the given object is EllipsisType
         """
-        return self._wrap(type(self.obj) is EllipsisType)
+        return self._wrap(type(self.obj) is type(Ellipsis))
 
     def isTraceback(self):
         """ Check if the given object is TracebackType
@@ -1195,11 +1203,15 @@ class underscore(object):
         """
         return self._wrap(type(self.obj) is FrameType)
 
+    # :DEPRECATED: Python 2 only.
+    # 3 uses memoryview.
     def isBuffer(self):
         """ Check if the given object is BufferType
         """
         return self._wrap(type(self.obj) is BufferType)
 
+    # :DEPRECATED: Python 2 only.
+    # 3 uses mappingproxy.
     def isDictProxy(self):
         """ Check if the given object is DictProxyType
         """
@@ -1208,7 +1220,7 @@ class underscore(object):
     def isNotImplemented(self):
         """ Check if the given object is NotImplementedType
         """
-        return self._wrap(type(self.obj) is NotImplementedType)
+        return self._wrap(type(self.obj) is type(NotImplemented))
 
     def isGetSetDescriptor(self):
         """ Check if the given object is GetSetDescriptorType
