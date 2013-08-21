@@ -1492,7 +1492,8 @@ class underscore(object):
         """ Provide static access to underscore class
         """
         for eachMethod in inspect.getmembers(underscore,
-                                             predicate=inspect.ismethod):
+                                             predicate=lambda value: inspect.ismethod(value) or
+                                             inspect.isfunction(value)):
             m = eachMethod[0]
             if not hasattr(_, m):
                 def caller(a):
