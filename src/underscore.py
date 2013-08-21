@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import inspect
 from types import *
-from itertools import ifilterfalse
 import re
 import functools
 import random
@@ -247,8 +246,7 @@ class underscore(object):
     def reject(self, func):
         """ Return all the elements for which a truth test fails.
         """
-        r = ifilterfalse(func, self.obj)
-        return self._wrap(self._toOriginal(r))
+        return self._wrap(filter(lambda value: not func(value), self.obj))
 
     def all(self, func=None):
         """ Determine whether all of the elements match a truth test.
