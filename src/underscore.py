@@ -1429,11 +1429,17 @@ class underscore(object):
             return "  " * ns.indent_level
 
         def interpolate(matchobj):
-            key = (matchobj.group(1).decode('string-escape')).strip()
+            if getattr(str, 'decode', False):
+                key = (matchobj.group(1).decode('string-escape')).strip()
+            else:
+                key = (bytes(matchobj.group(1), "utf-8").decode('unicode_escape')).strip()
             return "' + str(" + unescape(key) + " or '') + '"
 
         def evaluate(matchobj):
-            code = (matchobj.group(1).decode('string-escape')).strip()
+            if getattr(str, 'decode', False):
+                code = (matchobj.group(1).decode('string-escape')).strip()
+            else:
+                code = (bytes(matchobj.group(1), "utf-8").decode('unicode_escape')).strip()
             if code.startswith("end"):
                 return "')\n" + indent(-1) + "ns.__p += ('"
             elif code.endswith(':'):
@@ -1444,7 +1450,10 @@ class underscore(object):
                        "\n" + indent() + "ns.__p += ('"
 
         def escape(matchobj):
-            key = (matchobj.group(1).decode('string-escape')).strip()
+            if getattr(str, 'decode', False):
+                key = (matchobj.group(1).decode('string-escape')).strip()
+            else:
+                key = (bytes(matchobj.group(1), "utf-8").decode('unicode_escape')).strip()
             return "' + _.escape(str(" + unescape(key) + " or '')) + '"
 
         source = indent() + 'class closure(object):\n    pass' + \
@@ -1457,7 +1466,11 @@ class underscore(object):
             re.sub(settings.get('escape'), escape, src) + "')\n"
         source = re.sub(settings.get('interpolate'), interpolate, source)
         source = re.sub(settings.get('evaluate'), evaluate, source)
-        source += indent() + 'return ns.__p.decode("string_escape")\n'
+
+        if getattr(str, 'decode', False):
+            source += indent() + 'return ns.__p.decode("string_escape")\n'
+        else:
+            source += indent() + 'return bytes(ns.__p, "utf-8").decode("unicode_escape")\n'
 
         f = self.create_function(settings.get("variable")
                                  or "obj=None", source)
