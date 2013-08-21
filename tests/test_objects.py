@@ -7,10 +7,10 @@ from src.underscore import _
 class TestObjects(unittest.TestCase):
 
     def test_keys(self):
-        self.assertEqual(_.keys({"one": 1, "two": 2}), ['two', 'one'], 'can extract the keys from an object')
+        self.assertEqual(set(_.keys({"one": 1, "two": 2})), {'two', 'one'}, 'can extract the keys from an object')
 
     def test_values(self):
-        self.assertEqual(_.values({"one": 1, "two": 2}), [2, 1], 'can extract the values from an object')
+        self.assertEqual(set(_.values({"one": 1, "two": 2})), {2, 1}, 'can extract the values from an object')
 
     def test_functions(self):
         obj = {"a": 'dash', "b": _.map, "c": ("/yo/"), "d": _.reduce}
@@ -26,7 +26,7 @@ class TestObjects(unittest.TestCase):
         result = _.extend({"x": 'x'}, {"a": 'a', "x": 2}, {"a": 'b'})
         self.assertEqual(result, {"x": 2, "a": 'b'}, 'extending from multiple source objects last property trumps')
         result = _.extend({}, {"a": None, "b": None})
-        self.assertEqual(_.keys(result), ["a", "b"], 'extend does not copy undefined values')
+        self.assertEqual(set(_.keys(result)), {"a", "b"}, 'extend does not copy undefined values')
 
     def test_pick(self):
         result = _.pick({"a": 1, "b": 2, "c": 3}, 'a', 'c')
@@ -124,13 +124,12 @@ class TestObjects(unittest.TestCase):
 
     def test_pairs(self):
         r = _.pairs({"one": 1, "two": 2})
-        # Python alphabetically orders the keys automatically
-        self.assertEqual(r, [["two", 2], ["one", 1]], 'can convert an object into pairs')
+        self.assertEqual(sorted(r), [["one", 1], ["two", 2]], 'can convert an object into pairs')
 
     def test_invert(self):
         obj = {"first": 'Moe', "second": 'Larry', "third": 'Curly'}
         r = _(obj).chain().invert().keys().join(' ').value()
-        self.assertEqual(r, 'Larry Moe Curly', 'can invert an object')
+        self.assertEqual(set(r), set('Larry Moe Curly'), 'can invert an object')
         self.assertEqual(_.invert(_.invert(obj)), obj, "two inverts gets you back where you started")
 
 if __name__ == "__main__":
