@@ -1480,7 +1480,7 @@ class underscore(object):
         return f
 
     def create_function(self, args, source):
-        source = "def func(" + args + "):\n" + source + "\n"
+        source = "global func\ndef func(" + args + "):\n" + source + "\n"
         ns = self.Namespace()
         try:
             code = compile(source, '', 'exec')
@@ -1492,7 +1492,10 @@ class underscore(object):
 
         def _wrap(obj={"this": ""}):
             for i, k in enumerate(obj):
-                ns.func.func_globals[k] = obj[k]
+                if getattr(ns.func, 'func_globals', False):
+                    ns.func.func_globals[k] = obj[k]
+                else:
+                    ns.func.__globals__[k] = obj[k]
             return ns.func(obj)
 
         _wrap.source = source
