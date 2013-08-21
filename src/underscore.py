@@ -239,13 +239,13 @@ class underscore(object):
     def filter(self, func):
         """ Return all the elements that pass a truth test.
         """
-        return self._wrap(filter(func, self.obj))
+        return self._wrap(list(filter(func, self.obj)))
     select = filter
 
     def reject(self, func):
         """ Return all the elements for which a truth test fails.
         """
-        return self._wrap(filter(lambda value: not func(value), self.obj))
+        return self._wrap(list(filter(lambda value: not func(value), self.obj)))
 
     def all(self, func=None):
         """ Determine whether all of the elements match a truth test.
