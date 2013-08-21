@@ -1366,8 +1366,8 @@ class underscore(object):
         'br':    "r",
         'bn':    "n",
         'bt':    "t",
-        r'\u2028':  "u2028",
-        r'\u2029':  "u2029"
+        'bu2028':  "u2028",
+        'bu2029':  "u2029"
     }
 
     def template(self, data=None, settings=None):
@@ -1409,6 +1409,10 @@ class underscore(object):
                     a = "br"
                 if a == '\t':
                     a = "bt"
+                if a == '\u2028':
+                    a = 'bu2028'
+                if a == '\u2029':
+                    a = 'bu2029'
                 return self.escapes[a]
             return re.sub(settings.get('unescaper'), unescapes, code)
 
@@ -1421,6 +1425,10 @@ class underscore(object):
                 a = "br"
             if a == '\t':
                 a = "bt"
+            if a == '\u2028':
+                a = 'bu2028'
+            if a == '\u2029':
+                a = 'bu2029'
             return '\\' + self.escapes[a]
 
         def indent(n=None):
