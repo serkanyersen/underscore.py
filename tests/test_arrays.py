@@ -87,7 +87,7 @@ class TestArrays(unittest.TestCase):
         names = ['moe', 'larry', 'curly']
         ages = [30, 40, 50]
         leaders = [True]
-        stooges = _(names).zip(ages, leaders)
+        stooges = list(_(names).zip(ages, leaders))
         self.assertEqual("[('moe', 30, True), ('larry', 40, None), ('curly', 50, None)]", str(stooges), 'zipped together arrays of different lengths')
 
     def test_zipObject(self):
