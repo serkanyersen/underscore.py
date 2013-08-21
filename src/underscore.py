@@ -4,7 +4,6 @@ from types import *
 import re
 import functools
 import random
-from sets import Set
 from threading import Timer
 
 
@@ -600,9 +599,9 @@ class underscore(object):
         Produce an array that contains the union: each distinct element
         from all of the passed-in arrays.
         """
-        # setobj = Set(self.obj)
+        # setobj = set(self.obj)
         # for i, v in enumerate(args):
-        #     setobj = setobj.union(args[i])
+        #     setobj = setobj + set(args[i])
         # return self._wrap(self._clean._toOriginal(setobj))
         args = list(args)
         args.insert(0, self.obj)
@@ -614,9 +613,9 @@ class underscore(object):
         passed-in arrays.
         """
         a = tuple(self.obj[0])
-        setobj = Set(a)
+        setobj = set(a)
         for i, v in enumerate(args):
-            setobj = setobj.intersection(args[i])
+            setobj = setobj & set(args[i])
         return self._wrap(list(setobj))
 
     def difference(self, *args):
@@ -624,9 +623,9 @@ class underscore(object):
         Take the difference between one array and a number of other arrays.
         Only the elements present in just the first array will remain.
         """
-        setobj = Set(self.obj)
+        setobj = set(self.obj)
         for i, v in enumerate(args):
-            setobj = setobj.difference(args[i])
+            setobj = setobj - set(args[i])
         return self._wrap(self._clean._toOriginal(setobj))
 
     def zip(self, *args):
