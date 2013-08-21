@@ -138,7 +138,7 @@ class TestCollections(unittest.TestCase):
 
         res = _([{'age': '59', 'name': 'foo'},
                  {'age': '39', 'name': 'bar'},
-                 {'age': '49', 'name': 'baz'}]).sortBy(lambda x, y, *args: cmp(x, y))
+                 {'age': '49', 'name': 'baz'}]).sortBy(lambda x: x['age'])
         self.assertEqual([{'age': '39', 'name': 'bar'}, {'age': '49', 'name': 'baz'}, {'age': '59', 'name': 'foo'}], res, "filter by lambda did not work")
 
         res = _([50, 78, 30, 15, 90]).sortBy()
