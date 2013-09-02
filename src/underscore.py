@@ -612,7 +612,10 @@ class underscore(object):
         Produce an array that contains every item shared between all the
         passed-in arrays.
         """
-        a = tuple(self.obj[0])
+        if type(self.obj[0]) is int:
+            a = self.obj
+        else:
+            a = tuple(self.obj[0])
         setobj = set(a)
         for i, v in enumerate(args):
             setobj = setobj & set(args[i])

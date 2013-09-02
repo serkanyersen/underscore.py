@@ -66,7 +66,8 @@ class TestArrays(unittest.TestCase):
     def test_intersection(self):
         stooges = ['moe', 'curly', 'larry'],
         leaders = ['moe', 'groucho']
-        self.assertEqual(['moe'], _.intersection(stooges, leaders), 'can take the set intersection of two arrays')
+        self.assertEqual(['moe'], _.intersection(stooges, leaders), 'can take the set intersection of two string arrays')
+        self.assertEqual([1, 2], _.intersection([1, 2, 3], [101, 2, 1, 10], [2, 1]), 'can take the set intersection of two int arrays')
         self.assertEqual(['moe'], _(stooges).intersection(leaders), 'can perform an OO-style intersection')
 
     def test_union(self):
