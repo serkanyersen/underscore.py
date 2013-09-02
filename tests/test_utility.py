@@ -75,8 +75,8 @@ class TestUtility(unittest.TestCase):
         escapeTemplate = _.template('<%= "checked=\\"checked\\"" if a else "" %>')
         self.assertEqual(escapeTemplate({"a": True}), 'checked="checked"', 'can handle slash escapes in interpolations.')
 
-        fancyTemplate = _.template("<ul><% for key in people: %><li><%= people[key] %></li><% endfor %></ul>")
-        result = fancyTemplate({"people": {"moe": "Moe", "larry": "Larry", "curly": "Curly"}})
+        fancyTemplate = _.template("<ul><% for key in people: %><li><%= key %></li><% endfor %></ul>")
+        result = fancyTemplate({"people": ["Larry", "Curly", "Moe"]})
         self.assertEqual(result, "<ul><li>Larry</li><li>Curly</li><li>Moe</li></ul>", 'can run arbitrary javascript in templates')
 
         escapedCharsInJavascriptTemplate = _.template("<ul><% def by(item, *args): %><li><%= item %></li><% enddef %><% _.each(numbers.split('\\n'), by) %></ul>")
@@ -128,8 +128,8 @@ class TestUtility(unittest.TestCase):
             "interpolate": r"\{\{=([\s\S]+?)\}\}"
         }
 
-        custom = _.template("<ul>{{ for key in people: }}<li>{{= people[key] }}</li>{{ endfor }}</ul>")
-        result = custom({"people": {"moe": "Moe", "larry": "Larry", "curly": "Curly"}})
+        custom = _.template("<ul>{{ for key in people: }}<li>{{= key }}</li>{{ endfor }}</ul>")
+        result = custom({"people": ["Larry", "Curly", "Moe"]})
         self.assertEqual(result, "<ul><li>Larry</li><li>Curly</li><li>Moe</li></ul>", 'can run arbitrary javascript in templates')
 
         customQuote = _.template("It's its, not it's")
@@ -143,8 +143,8 @@ class TestUtility(unittest.TestCase):
             "interpolate": r"<\?=([\s\S]+?)\?>"
         }
 
-        customWithSpecialChars = _.template("<ul><? for key in people: ?><li><?= people[key] ?></li><? endfor ?></ul>")
-        result = customWithSpecialChars({"people": {"moe": "Moe", "larry": "Larry", "curly": "Curly"}})
+        customWithSpecialChars = _.template("<ul><? for key in people: ?><li><?= key ?></li><? endfor ?></ul>")
+        result = customWithSpecialChars({"people": ["Larry", "Curly", "Moe"]})
         self.assertEqual(result, "<ul><li>Larry</li><li>Curly</li><li>Moe</li></ul>", 'can run arbitrary javascript in templates')
 
         customWithSpecialCharsQuote = _.template("It's its, not it's")

@@ -19,18 +19,19 @@ class TestCollections(unittest.TestCase):
         _([1, 2, 3, 4]).forEach(eachTest)
         self.assertEqual([2, 3, 4, 5], self.eachList, "forEach for lists did not work for all")
 
-    eachDict = ""
+    eachSet = set()
 
     def test_each_dict(self):
         def eachTest(val, key, *args):
-            self.eachDict += (key + ":" + val + " ")
+            self.eachSet.add(val)
+            self.eachSet.add(key)
 
-        _({"foo": "bar", "bar": "foo"}).each(eachTest)
-        self.assertEqual("foo:bar bar:foo ", self.eachDict, "each for dicts did not work for all")
+        _({"foo": "bar", "fizz": "buzz"}).each(eachTest)
+        self.assertEqual({"foo", "bar", "fizz", "buzz"}, self.eachSet, "each for dicts did not work for all")
         # alias
-        self.eachDict = ""
-        _({"foo": "bar", "bar": "foo"}).forEach(eachTest)
-        self.assertEqual("foo:bar bar:foo ", self.eachDict, "forEach for dicts did not work for all")
+        self.eachSet = set()
+        _({"foo": "bar", "fizz": "buzz"}).forEach(eachTest)
+        self.assertEqual({"foo", "bar", "fizz", "buzz"}, self.eachSet, "forEach for dicts did not work for all")
 
     def test_map_list(self):
         def mapTest(val, *args):
@@ -45,10 +46,10 @@ class TestCollections(unittest.TestCase):
         def mapTest(val, key, *args):
             return val.upper()
         map = _({"foo": "bar", "bar": "foo"}).map(mapTest)
-        self.assertEqual(["BAR", "FOO"], map, "map for dicts did not work")
+        self.assertEqual({"BAR", "FOO"}, set(map), "map for dicts did not work")
         # alias
         map = _({"foo": "bar", "bar": "foo"}).collect(mapTest)
-        self.assertEqual(["BAR", "FOO"], map, "collect for dicts did not work")
+        self.assertEqual({"BAR", "FOO"}, set(map), "collect for dicts did not work")
 
     def test_reduce(self):
         res = _([1, 2, 3, 4, 5, 6]).reduce(lambda sum, num, *args: sum + num, 0)
@@ -137,7 +138,7 @@ class TestCollections(unittest.TestCase):
 
         res = _([{'age': '59', 'name': 'foo'},
                  {'age': '39', 'name': 'bar'},
-                 {'age': '49', 'name': 'baz'}]).sortBy(lambda x, y, *args: cmp(x, y))
+                 {'age': '49', 'name': 'baz'}]).sortBy(lambda x: x['age'])
         self.assertEqual([{'age': '39', 'name': 'bar'}, {'age': '49', 'name': 'baz'}, {'age': '59', 'name': 'foo'}], res, "filter by lambda did not work")
 
         res = _([50, 78, 30, 15, 90]).sortBy()

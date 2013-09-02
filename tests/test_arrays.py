@@ -87,7 +87,7 @@ class TestArrays(unittest.TestCase):
         names = ['moe', 'larry', 'curly']
         ages = [30, 40, 50]
         leaders = [True]
-        stooges = _(names).zip(ages, leaders)
+        stooges = list(_(names).zip(ages, leaders))
         self.assertEqual("[('moe', 30, True), ('larry', 40, None), ('curly', 50, None)]", str(stooges), 'zipped together arrays of different lengths')
 
     def test_zipObject(self):
@@ -123,15 +123,15 @@ class TestArrays(unittest.TestCase):
         self.assertEqual(_.indexOf(None, 2), -1, 'handles nulls properly')
 
     def test_range(self):
-        self.assertEqual(_.range(0), [], 'range with 0 as a first argument generates an empty array')
-        self.assertEqual(_.range(4), [0, 1, 2, 3], 'range with a single positive argument generates an array of elements 0,1,2,...,n-1')
-        self.assertEqual(_.range(5, 8), [5, 6, 7], 'range with two arguments a &amp; b, a&lt;b generates an array of elements a,a+1,a+2,...,b-2,b-1')
-        self.assertEqual(_.range(8, 5), [], 'range with two arguments a &amp; b, b&lt;a generates an empty array')
-        self.assertEqual(_.range(3, 10, 3), [3, 6, 9], 'range with three arguments a &amp; b &amp; c, c &lt; b-a, a &lt; b generates an array of elements a,a+c,a+2c,...,b - (multiplier of a) &lt; c')
-        self.assertEqual(_.range(3, 10, 15), [3], 'range with three arguments a &amp; b &amp; c, c &gt; b-a, a &lt; b generates an array with a single element, equal to a')
-        self.assertEqual(_.range(12, 7, -2), [12, 10, 8], 'range with three arguments a &amp; b &amp; c, a &gt; b, c &lt; 0 generates an array of elements a,a-c,a-2c and ends with the number not less than b')
-        self.assertEqual(_.range(0, -10, -1), [0, -1, -2, -3, -4, -5, -6, -7, -8, -9], 'final example in the Python docs')
+        self.assertEqual(list(_.range(0)), [], 'range with 0 as a first argument generates an empty array')
+        self.assertEqual(list(_.range(4)), [0, 1, 2, 3], 'range with a single positive argument generates an array of elements 0,1,2,...,n-1')
+        self.assertEqual(list(_.range(5, 8)), [5, 6, 7], 'range with two arguments a &amp; b, a&lt;b generates an array of elements a,a+1,a+2,...,b-2,b-1')
+        self.assertEqual(list(_.range(8, 5)), [], 'range with two arguments a &amp; b, b&lt;a generates an empty array')
+        self.assertEqual(list(_.range(3, 10, 3)), [3, 6, 9], 'range with three arguments a &amp; b &amp; c, c &lt; b-a, a &lt; b generates an array of elements a,a+c,a+2c,...,b - (multiplier of a) &lt; c')
+        self.assertEqual(list(_.range(3, 10, 15)), [3], 'range with three arguments a &amp; b &amp; c, c &gt; b-a, a &lt; b generates an array with a single element, equal to a')
+        self.assertEqual(list(_.range(12, 7, -2)), [12, 10, 8], 'range with three arguments a &amp; b &amp; c, a &gt; b, c &lt; 0 generates an array of elements a,a-c,a-2c and ends with the number not less than b')
+        self.assertEqual(list(_.range(0, -10, -1)), [0, -1, -2, -3, -4, -5, -6, -7, -8, -9], 'final example in the Python docs')
 
 if __name__ == "__main__":
-    print "run these tests by executing `python -m unittest discover` in unittests folder"
+    print ("run these tests by executing `python -m unittest discover` in unittests folder")
     unittest.main()

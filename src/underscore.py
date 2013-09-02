@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 import inspect
 from types import *
-from itertools import ifilterfalse
 import re
 import functools
 import random
-from sets import Set
 from threading import Timer
 
 
@@ -220,7 +218,7 @@ class underscore(object):
         #foldr = lambda f, i: lambda s: reduce(f, s, i)
         x = self.obj[:]
         x.reverse()
-        return self._wrap(reduce(func, x))
+        return self._wrap(functools.reduce(func, x))
     foldr = reduceRight
 
     def find(self, func):
@@ -241,14 +239,13 @@ class underscore(object):
     def filter(self, func):
         """ Return all the elements that pass a truth test.
         """
-        return self._wrap(filter(func, self.obj))
+        return self._wrap(list(filter(func, self.obj)))
     select = filter
 
     def reject(self, func):
         """ Return all the elements for which a truth test fails.
         """
-        r = ifilterfalse(func, self.obj)
-        return self._wrap(self._toOriginal(r))
+        return self._wrap(list(filter(lambda value: not func(value), self.obj)))
 
     def all(self, func=None):
         """ Determine whether all of the elements match a truth test.
@@ -376,7 +373,7 @@ class underscore(object):
                 return self._wrap(sorted(self.obj, key=lambda x,
                                   *args: x.get(val)))
             else:
-                return self._wrap(sorted(self.obj, val))
+                return self._wrap(sorted(self.obj, key=val))
         else:
             return self._wrap(sorted(self.obj))
 
@@ -602,9 +599,9 @@ class underscore(object):
         Produce an array that contains the union: each distinct element
         from all of the passed-in arrays.
         """
-        # setobj = Set(self.obj)
+        # setobj = set(self.obj)
         # for i, v in enumerate(args):
-        #     setobj = setobj.union(args[i])
+        #     setobj = setobj + set(args[i])
         # return self._wrap(self._clean._toOriginal(setobj))
         args = list(args)
         args.insert(0, self.obj)
@@ -616,9 +613,9 @@ class underscore(object):
         passed-in arrays.
         """
         a = tuple(self.obj[0])
-        setobj = Set(a)
+        setobj = set(a)
         for i, v in enumerate(args):
-            setobj = setobj.intersection(args[i])
+            setobj = setobj & set(args[i])
         return self._wrap(list(setobj))
 
     def difference(self, *args):
@@ -626,9 +623,9 @@ class underscore(object):
         Take the difference between one array and a number of other arrays.
         Only the elements present in just the first array will remain.
         """
-        setobj = Set(self.obj)
+        setobj = set(self.obj)
         for i, v in enumerate(args):
-            setobj = setobj.difference(args[i])
+            setobj = setobj - set(args[i])
         return self._wrap(self._clean._toOriginal(setobj))
 
     def zip(self, *args):
@@ -1043,75 +1040,72 @@ class underscore(object):
         return self._wrap(False)
 
     def isDict(self):
-        """ Check if given object is a dictionary DictType
+        """ Check if given object is a dictionary
         """
-        return self._wrap(type(self.obj) is DictType)
+        return self._wrap(type(self.obj) is dict)
 
     def isTuple(self):
-        """ Check if given object is a Tuple TupleType
+        """ Check if given object is a tuple
         """
-        return self._wrap(type(self.obj) is TupleType)
+        return self._wrap(type(self.obj) is tuple)
 
     def isList(self):
-        """ Check if given object is a list ListType
+        """ Check if given object is a list
         """
-        return self._wrap(type(self.obj) is ListType)
+        return self._wrap(type(self.obj) is list)
 
     def isNone(self):
-        """ Check if the given object is NoneType
+        """ Check if the given object is None
         """
-        return self._wrap(type(self.obj) is NoneType)
+        return self._wrap(self.obj is None)
 
     def isType(self):
-        """ Check if the given object is TypeType
+        """ Check if the given object is a type
         """
-        return self._wrap(type(self.obj) is TypeType)
+        return self._wrap(type(self.obj) is type)
 
     def isBoolean(self):
-        """ Check if the given object is BooleanType
+        """ Check if the given object is a boolean
         """
-        return self._wrap(type(self.obj) is BooleanType)
+        return self._wrap(type(self.obj) is bool)
     isBool = isBoolean
 
     def isInt(self):
-        """ Check if the given object is IntType
+        """ Check if the given object is an int
         """
-        return self._wrap(type(self.obj) is IntType)
+        return self._wrap(type(self.obj) is int)
 
+    # :DEPRECATED: Python 2 only.
+    # 3 removes this.
     def isLong(self):
-        """ Check if the given object is LongType
+        """ Check if the given object is a long
         """
-        return self._wrap(type(self.obj) is LongType)
+        return self._wrap(type(self.obj) is long)
 
     def isFloat(self):
-        """ Check if the given object is FloatType
+        """ Check if the given object is a float
         """
-        return self._wrap(type(self.obj) is FloatType)
+        return self._wrap(type(self.obj) is float)
 
     def isComplex(self):
-        """ Check if the given object is ComplexType
+        """ Check if the given object is a complex
         """
-        return self._wrap(type(self.obj) is ComplexType)
+        return self._wrap(type(self.obj) is complex)
 
     def isString(self):
-        """ Check if the given object is StringType
+        """ Check if the given object is a string
         """
-        return self._wrap(type(self.obj) is StringType)
+        return self._wrap(type(self.obj) is str)
 
     def isUnicode(self):
-        """ Check if the given object is UnicodeType
+        """ Check if the given object is a unicode string
         """
-        return self._wrap(type(self.obj) is UnicodeType)
+        return self._wrap(type(self.obj) is unicode)
 
     def isCallable(self):
         """ Check if the given object is any of the function types
         """
-        return self._wrap(type(self.obj) is MethodType
-                          or type(self.obj) is FunctionType
-                          or type(self.obj) is LambdaType
-                          or type(self.obj) is BuiltinMethodType
-                          or type(self.obj) is BuiltinFunctionType
-                          or type(self.obj) is UnboundMethodType)
+        return self._wrap(callable(self.obj))
 
     def isFunction(self):
         """ Check if the given object is FunctionType
@@ -1136,8 +1130,10 @@ class underscore(object):
     def isClass(self):
         """ Check if the given object is ClassType
         """
-        return self._wrap(type(self.obj) is ClassType)
+        return self._wrap(inspect.isclass(self.obj))
 
+    # :DEPRECATED: Python 2 only.
+    # 3 removes this.
     def isInstance(self):
         """ Check if the given object is InstanceType
         """
@@ -1146,8 +1142,10 @@ class underscore(object):
     def isMethod(self):
         """ Check if the given object is MethodType
         """
-        return self._wrap(type(self.obj) is MethodType)
+        return self._wrap(inspect.ismethod(self.obj))
 
+    # :DEPRECATED: Python 2 only.
+    # 3 removes this.
     def isUnboundMethod(self):
         """ Check if the given object is UnboundMethodType
         """
@@ -1169,10 +1167,17 @@ class underscore(object):
         return self._wrap(type(self.obj) is ModuleType)
 
     def isFile(self):
-        """ Check if the given object is FileType
+        """ Check if the given object is a file
         """
-        return self._wrap(type(self.obj) is FileType)
+        try:
+            filetype = file
+        except NameError:
+            filetype = io.IOBase
 
+        return self._wrap(type(self.obj) is filetype)
+
+    # :DEPRECATED: Python 2 only.
+    # 3 removes this.
     def isXRange(self):
         """ Check if the given object is XRangeType
         """
@@ -1181,12 +1186,12 @@ class underscore(object):
     def isSlice(self):
         """ Check if the given object is SliceType
         """
-        return self._wrap(type(self.obj) is SliceType)
+        return self._wrap(type(self.obj) is type(slice))
 
     def isEllipsis(self):
         """ Check if the given object is EllipsisType
         """
-        return self._wrap(type(self.obj) is EllipsisType)
+        return self._wrap(type(self.obj) is type(Ellipsis))
 
     def isTraceback(self):
         """ Check if the given object is TracebackType
@@ -1198,11 +1203,15 @@ class underscore(object):
         """
         return self._wrap(type(self.obj) is FrameType)
 
+    # :DEPRECATED: Python 2 only.
+    # 3 uses memoryview.
     def isBuffer(self):
         """ Check if the given object is BufferType
         """
         return self._wrap(type(self.obj) is BufferType)
 
+    # :DEPRECATED: Python 2 only.
+    # 3 uses mappingproxy.
     def isDictProxy(self):
         """ Check if the given object is DictProxyType
         """
@@ -1211,7 +1220,7 @@ class underscore(object):
     def isNotImplemented(self):
         """ Check if the given object is NotImplementedType
         """
-        return self._wrap(type(self.obj) is NotImplementedType)
+        return self._wrap(type(self.obj) is type(NotImplemented))
 
     def isGetSetDescriptor(self):
         """ Check if the given object is GetSetDescriptorType
@@ -1357,8 +1366,8 @@ class underscore(object):
         'br':    "r",
         'bn':    "n",
         'bt':    "t",
-        r'\u2028':  "u2028",
-        r'\u2029':  "u2029"
+        'bu2028':  "u2028",
+        'bu2029':  "u2029"
     }
 
     def template(self, data=None, settings=None):
@@ -1400,6 +1409,10 @@ class underscore(object):
                     a = "br"
                 if a == '\t':
                     a = "bt"
+                if a == '\u2028':
+                    a = 'bu2028'
+                if a == '\u2029':
+                    a = 'bu2029'
                 return self.escapes[a]
             return re.sub(settings.get('unescaper'), unescapes, code)
 
@@ -1412,6 +1425,10 @@ class underscore(object):
                 a = "br"
             if a == '\t':
                 a = "bt"
+            if a == '\u2028':
+                a = 'bu2028'
+            if a == '\u2029':
+                a = 'bu2029'
             return '\\' + self.escapes[a]
 
         def indent(n=None):
@@ -1420,11 +1437,17 @@ class underscore(object):
             return "  " * ns.indent_level
 
         def interpolate(matchobj):
-            key = (matchobj.group(1).decode('string-escape')).strip()
+            if getattr(str, 'decode', False):
+                key = (matchobj.group(1).decode('string-escape')).strip()
+            else:
+                key = (bytes(matchobj.group(1), "utf-8").decode('unicode_escape')).strip()
             return "' + str(" + unescape(key) + " or '') + '"
 
         def evaluate(matchobj):
-            code = (matchobj.group(1).decode('string-escape')).strip()
+            if getattr(str, 'decode', False):
+                code = (matchobj.group(1).decode('string-escape')).strip()
+            else:
+                code = (bytes(matchobj.group(1), "utf-8").decode('unicode_escape')).strip()
             if code.startswith("end"):
                 return "')\n" + indent(-1) + "ns.__p += ('"
             elif code.endswith(':'):
@@ -1435,7 +1458,10 @@ class underscore(object):
                        "\n" + indent() + "ns.__p += ('"
 
         def escape(matchobj):
-            key = (matchobj.group(1).decode('string-escape')).strip()
+            if getattr(str, 'decode', False):
+                key = (matchobj.group(1).decode('string-escape')).strip()
+            else:
+                key = (bytes(matchobj.group(1), "utf-8").decode('unicode_escape')).strip()
             return "' + _.escape(str(" + unescape(key) + " or '')) + '"
 
         source = indent() + 'class closure(object):\n    pass' + \
@@ -1448,7 +1474,11 @@ class underscore(object):
             re.sub(settings.get('escape'), escape, src) + "')\n"
         source = re.sub(settings.get('interpolate'), interpolate, source)
         source = re.sub(settings.get('evaluate'), evaluate, source)
-        source += indent() + 'return ns.__p.decode("string_escape")\n'
+
+        if getattr(str, 'decode', False):
+            source += indent() + 'return ns.__p.decode("string_escape")\n'
+        else:
+            source += indent() + 'return bytes(ns.__p, "utf-8").decode("unicode_escape")\n'
 
         f = self.create_function(settings.get("variable")
                                  or "obj=None", source)
@@ -1458,19 +1488,22 @@ class underscore(object):
         return f
 
     def create_function(self, args, source):
-        source = "def func(" + args + "):\n" + source + "\n"
+        source = "global func\ndef func(" + args + "):\n" + source + "\n"
         ns = self.Namespace()
         try:
             code = compile(source, '', 'exec')
-            exec code in globals(), locals()
+            exec(code) in globals(), locals()
         except:
-            print source
+            print(source)
             raise Exception("template error")
         ns.func = func
 
         def _wrap(obj={"this": ""}):
             for i, k in enumerate(obj):
-                ns.func.func_globals[k] = obj[k]
+                if getattr(ns.func, 'func_globals', False):
+                    ns.func.func_globals[k] = obj[k]
+                else:
+                    ns.func.__globals__[k] = obj[k]
             return ns.func(obj)
 
         _wrap.source = source
@@ -1495,7 +1528,8 @@ class underscore(object):
         """ Provide static access to underscore class
         """
         for eachMethod in inspect.getmembers(underscore,
-                                             predicate=inspect.ismethod):
+                                             predicate=lambda value: inspect.ismethod(value) or
+                                             inspect.isfunction(value)):
             m = eachMethod[0]
             if not hasattr(_, m):
                 def caller(a):
