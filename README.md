@@ -17,6 +17,8 @@ Underscore.py is a python port of excellent javascript library underscore.js
 
 NOTE: It's obvious that python already has nearly all features of underscore library built-in. I'm not trying to fill any gap in python. If you are coming from JavaScript this library will provide you a familiar interface, a set of tools you already know how to use and micro templating functionality. Use it wisely and try to use built-in functions wherever possible.
 
+[![Build Status](https://travis-ci.org/serkanyersen/underscore.py.png?branch=master)](https://travis-ci.org/serkanyersen/underscore.py)
+
 ## Installing
 
 Install from pypi
