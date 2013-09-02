@@ -69,7 +69,7 @@ class TestUtility(unittest.TestCase):
         sansSemicolonTemplate = _.template("A <% this %> B")
         self.assertEqual(sansSemicolonTemplate(), "A  B")
 
-        backslashTemplate = _.template("<%= thing %> is \\ridanculous")
+        backslashTemplate = _.template("<%= thing %> is \ridanculous")
         self.assertEqual(backslashTemplate({"thing": 'This'}), "This is \ridanculous")
 
         escapeTemplate = _.template('<%= "checked=\\"checked\\"" if a else "" %>')
