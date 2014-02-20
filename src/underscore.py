@@ -61,7 +61,7 @@ class underscore(object):
     """ Passed object
     """
 
-    VERSION = "0.1.5"
+    VERSION = "0.1.6"
 
     chained = False
     """ If the object is in a chained state or not
@@ -1266,13 +1266,18 @@ class underscore(object):
         j = glue.join([str(x) for x in self.obj])
         return self._wrap(j)
 
+    def constant(self, *args):
+        """ High order of identity
+        """
+        return self._wrap(lambda *args: self.obj)
+
     def identity(self, *args):
         """ Keep the identity function around for default iterators.
         """
         return self._wrap(self.obj)
 
     def property(self):
-        """
+        """ For easy creation of iterators that pull specific properties from objects.
         """
         return self._wrap(lambda obj, *args: obj[self.obj])
 

@@ -17,6 +17,10 @@ class TestUtility(unittest.TestCase):
         moe = {"name": 'moe'}
         self.assertEqual(moe, _.identity(moe), "moe is the same as his identity")
 
+    def test_constant(self):
+        moe = {"name" : 'moe'}
+        self.assertEqual(_.constant(moe)(), moe, 'should create a function that returns moe')
+
     def test_property(self):
         moe = {"name" : 'moe'}
         self.assertEqual(_.property('name')(moe), 'moe', 'should return the property with the given name')
