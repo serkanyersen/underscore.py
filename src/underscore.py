@@ -399,7 +399,10 @@ class underscore(object):
         _.each(obj, e)
 
         if len(ns.result) == 1:
-            return ns.result[0]
+            try:
+                return ns.result[0]
+            except KeyError:
+                return list(ns.result.values())[0]
         return ns.result
 
     def groupBy(self, val):

@@ -149,6 +149,8 @@ class TestCollections(unittest.TestCase):
         self.assertTrue(0 in parity and 1 in parity, 'created a group for each value')
         self.assertEqual(_(parity[0]).join(', '), '2, 4, 6', 'put each even number in the right group')
 
+        self.assertEqual(_.groupBy([1], lambda num, *args: num), [1])
+
         llist = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
         grouped = _.groupBy(llist, lambda x, *args: len(x))
         self.assertEqual(_(grouped[3]).join(' '), 'one two six ten')
@@ -159,6 +161,8 @@ class TestCollections(unittest.TestCase):
         parity = _.countBy([1, 2, 3, 4, 5], lambda num, *args: num % 2 == 0)
         self.assertEqual(parity[True], 2)
         self.assertEqual(parity[False], 3)
+
+        self.assertEqual(_.countBy([1], lambda num, *args: num), 1)
 
         llist = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
         grouped = _.countBy(llist, lambda x, *args: len(x))
@@ -215,6 +219,8 @@ class TestCollections(unittest.TestCase):
         parity = _.indexBy([1, 2, 3, 4, 5], lambda num, *args: num % 2 == 0)
         self.assertEqual(parity[True], 4)
         self.assertEqual(parity[False], 5)
+
+        self.assertEqual(_.indexBy([1], lambda num, *args: num), 1)
 
         llist = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
         grouped = _.indexBy(llist, lambda x, *args: len(x))
