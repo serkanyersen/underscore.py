@@ -237,6 +237,7 @@ class TestCollections(unittest.TestCase):
         self.assertEqual(_.partition(list, lambda x, *args: x - 3 ), [[0,1,2,4,5],[3]], 'handles other numeric return values')
         self.assertEqual(_.partition(list, lambda x, *args: None if x > 1 else True ), [[0,1],[2,3,4,5]], 'handles null return values')
 
+        # Test an object
         self.assertEqual(_.partition({"a": 1, "b": 2, "c": 3}, lambda x, *args: x > 1 ), [[3, 2], [1]], 'handles objects')
 
         # Default iterator

@@ -580,7 +580,8 @@ class underscore(object):
             (pass_list if predicate(elem) else fail_list).append(elem)
 
         _.each(self.obj, by)
-        return [pass_list, fail_list]
+
+        return self._wrap([pass_list, fail_list])
 
     def uniq(self, isSorted=False, iterator=None):
         """
@@ -1269,6 +1270,11 @@ class underscore(object):
         """ Keep the identity function around for default iterators.
         """
         return self._wrap(self.obj)
+
+    def property(self):
+        """
+        """
+        return self._wrap(lambda obj, *args: obj[self.obj])
 
     def times(self, func, *args):
         """ Run a function **n** times.
