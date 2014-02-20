@@ -132,6 +132,13 @@ class TestObjects(unittest.TestCase):
         self.assertEqual(set(r), set('Larry Moe Curly'), 'can invert an object')
         self.assertEqual(_.invert(_.invert(obj)), obj, "two inverts gets you back where you started")
 
+    def test_matches(self):
+        moe = {"name": 'Moe Howard', "hair": True};
+        curly = {"name": 'Curly Howard', "hair": False};
+        stooges = [moe, curly]
+        self.assertTrue(_.find(stooges, _.matches({"hair": False})) == curly, "returns a predicate that can be used by finding functions.")
+        self.assertTrue(_.find(stooges, _.matches(moe)) == moe, "can be used to locate an object exists in a collection.")
+
 if __name__ == "__main__":
     print ("run these tests by executing `python -m unittest discover` in unittests folder")
     unittest.main()

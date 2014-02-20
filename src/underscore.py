@@ -1276,6 +1276,24 @@ class underscore(object):
         """
         return self._wrap(lambda obj, *args: obj[self.obj])
 
+    def matches(self):
+        """
+        Returns a predicate for checking whether an object has a given
+        set of `key:value` pairs.
+        """
+        def ret(obj, *args):
+            if self.obj is obj:
+                return True  # avoid comparing an object to itself.
+
+            for key in self.obj:
+                if self.obj[key] != obj[key]:
+                    return False
+
+            return True
+
+        return self._wrap(ret)
+
+
     def times(self, func, *args):
         """ Run a function **n** times.
         """
