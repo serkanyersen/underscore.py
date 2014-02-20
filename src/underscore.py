@@ -4,6 +4,7 @@ from types import *
 import re
 import functools
 import random
+import time
 from threading import Timer
 
 
@@ -1310,6 +1311,9 @@ class underscore(object):
             i += 1
 
         return self._wrap(func)
+
+    def now(self):
+        return self._wrap(time.time())
 
     def random(self, max_number=None):
         """ Return a random integer between min and max (inclusive).

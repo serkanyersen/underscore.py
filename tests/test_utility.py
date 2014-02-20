@@ -3,7 +3,7 @@ from unittesthelper import init
 init()  # will let you import modules from upper folder
 from src.underscore import _
 import math
-
+import time
 
 class TestUtility(unittest.TestCase):
 
@@ -39,6 +39,10 @@ class TestUtility(unittest.TestCase):
             return r >= 0 and r <= ma
         result = _.every(array, check2)
         self.assertTrue(result, "should produce a random number when passed max_number")
+
+    def test_now(self):
+        diff = _.now() - time.time()
+        self.assertTrue(diff <= 0 and diff > -5, 'Produces the correct time in milliseconds')
 
     def test_uniqueId(self):
         ns = self.Namespace()
