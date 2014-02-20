@@ -238,7 +238,9 @@ class TestCollections(unittest.TestCase):
         self.assertEqual(_.partition(list, lambda x, *args: None if x > 1 else True ), [[0,1],[2,3,4,5]], 'handles null return values')
 
         # Test an object
-        self.assertEqual(_.partition({"a": 1, "b": 2, "c": 3}, lambda x, *args: x > 1 ), [[3, 2], [1]], 'handles objects')
+        result = _.partition({"a": 1, "b": 2, "c": 3}, lambda x, *args: x > 1 )
+        # Has to handle difference between python3 and python2
+        self.assertTrue((result == [[3, 2], [1]] or result == [[2, 3], [1]]), 'handles objects')
 
         # Default iterator
         self.assertEqual(_.partition([1, False, True, '']), [[1, True], [False, '']], 'Default iterator')
