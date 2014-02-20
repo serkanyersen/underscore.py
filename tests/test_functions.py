@@ -21,10 +21,18 @@ class TestStructure(unittest.TestCase):
             return n if n < 2 else fib(n - 1) + fib(n - 2)
 
         fastFib = _.memoize(fib)
-        self.assertEqual(fib(10), 55, 'a memoized version of fibonacci produces identical results')
-        self.assertEqual(fastFib(10), 55, 'a memoized version of fibonacci produces identical results')
-        self.assertEqual(fastFib(10), 55, 'a memoized version of fibonacci produces identical results')
-        self.assertEqual(fastFib(10), 55, 'a memoized version of fibonacci produces identical results')
+        self.assertEqual(
+            fib(10), 55, 'a memoized version of fibonacci'
+                         ' produces identical results')
+        self.assertEqual(
+            fastFib(10), 55, 'a memoized version of fibonacci'
+            ' produces identical results')
+        self.assertEqual(
+            fastFib(10), 55, 'a memoized version of fibonacci'
+            ' produces identical results')
+        self.assertEqual(
+            fastFib(10), 55, 'a memoized version of fibonacci'
+            ' produces identical results')
 
         def o(str):
             return str
@@ -45,11 +53,11 @@ class TestStructure(unittest.TestCase):
 
         def checkFalse():
             self.assertFalse(ns.delayed)
-            print ("\nASYNC: delay. OK")
+            print("\nASYNC: delay. OK")
 
         def checkTrue():
             self.assertTrue(ns.delayed)
-            print ("\nASYNC: delay. OK")
+            print("\nASYNC: delay. OK")
 
         Timer(0.05, checkFalse).start()
         Timer(0.20, checkTrue).start()
@@ -65,7 +73,7 @@ class TestStructure(unittest.TestCase):
 
         def deferCheck():
             self.assertTrue(ns.deferred, "deferred the function")
-            print ("\nASYNC: defer. OK")
+            print("\nASYNC: defer. OK")
 
         _.delay(deferCheck, 50)
 
@@ -89,11 +97,11 @@ class TestStructure(unittest.TestCase):
 
         def checkCounter1():
             self.assertEqual(ns.counter, 1, "incr was called immediately")
-            print ("ASYNC: throttle. OK")
+            print("ASYNC: throttle. OK")
 
         def checkCounter2():
             self.assertEqual(ns.counter, 4, "incr was throttled")
-            print ("ASYNC: throttle. OK")
+            print("ASYNC: throttle. OK")
 
         _.delay(checkCounter1, 90)
         _.delay(checkCounter2, 400)
@@ -117,7 +125,7 @@ class TestStructure(unittest.TestCase):
 
         def checkCounter():
             self.assertEqual(1, ns.counter, "incr was debounced")
-            print ("ASYNC: debounce. OK")
+            print("ASYNC: debounce. OK")
 
         _.delay(checkCounter, 300)
 
@@ -145,7 +153,8 @@ class TestStructure(unittest.TestCase):
             reveresed = "".join(aname)
             return func(name) + ' ' + reveresed
         backwards = _.wrap(greet, wrap)
-        self.assertEqual(backwards('moe'), 'hi: moe eom', 'wrapped the saluation function')
+        self.assertEqual(backwards('moe'), 'hi: moe eom',
+                         'wrapped the saluation function')
 
         inner = lambda: "Hello "
         obj = {"name": "Moe"}
@@ -164,7 +173,8 @@ class TestStructure(unittest.TestCase):
 
         composed_function = _.compose(exclaim, greet, upperize)
 
-        self.assertEqual('HI: MOE!', composed_function('moe'), 'can compose a function that takes another')
+        self.assertEqual('HI: MOE!', composed_function('moe'),
+                         'can compose a function that takes another')
 
     def test_after(self):
 
@@ -183,9 +193,12 @@ class TestStructure(unittest.TestCase):
 
             return ns.afterCalled
 
-        self.assertEqual(testAfter(5, 5), 1, "after(N) should fire after being called N times")
-        self.assertEqual(testAfter(5, 4), 0, "after(N) should not fire unless called N times")
-        self.assertEqual(testAfter(0, 0), 1, "after(0) should fire immediately")
+        self.assertEqual(testAfter(5, 5), 1,
+                         "after(N) should fire after being called N times")
+        self.assertEqual(testAfter(5, 4), 0,
+                         "after(N) should not fire unless called N times")
+        self.assertEqual(testAfter(0, 0), 1,
+                         "after(0) should fire immediately")
 
     def test_partial(self):
         def func(*args):
@@ -194,5 +207,6 @@ class TestStructure(unittest.TestCase):
         self.assertEqual(pfunc('d', 'e'), 'a b c d e')
 
 if __name__ == "__main__":
-    print ("run these tests by executing `python -m unittest discover` in unittests folder")
+    print("run these tests by executing `python -m unittest"
+          "discover` in unittests folder")
     unittest.main()

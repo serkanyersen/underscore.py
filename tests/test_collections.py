@@ -13,11 +13,13 @@ class TestCollections(unittest.TestCase):
             self.eachList.append(val + 1)
 
         _([1, 2, 3, 4]).each(eachTest)
-        self.assertEqual([2, 3, 4, 5], self.eachList, "each for lists did not work for all")
+        self.assertEqual([2, 3, 4, 5], self.eachList,
+                         "each for lists did not work for all")
         # test alias
         self.eachList = []
         _([1, 2, 3, 4]).forEach(eachTest)
-        self.assertEqual([2, 3, 4, 5], self.eachList, "forEach for lists did not work for all")
+        self.assertEqual([2, 3, 4, 5], self.eachList,
+                         "forEach for lists did not work for all")
 
     eachSet = set()
 
@@ -27,11 +29,14 @@ class TestCollections(unittest.TestCase):
             self.eachSet.add(key)
 
         _({"foo": "bar", "fizz": "buzz"}).each(eachTest)
-        self.assertEqual({"foo", "bar", "fizz", "buzz"}, self.eachSet, "each for dicts did not work for all")
+        self.assertEqual({"foo", "bar", "fizz", "buzz"},
+                         self.eachSet, "each for dicts did not work for all")
         # alias
         self.eachSet = set()
         _({"foo": "bar", "fizz": "buzz"}).forEach(eachTest)
-        self.assertEqual({"foo", "bar", "fizz", "buzz"}, self.eachSet, "forEach for dicts did not work for all")
+        self.assertEqual({"foo", "bar", "fizz", "buzz"},
+                         self.eachSet, "forEach for dicts did"
+                         "not work for all")
 
     def test_map_list(self):
         def mapTest(val, *args):
@@ -46,23 +51,28 @@ class TestCollections(unittest.TestCase):
         def mapTest(val, key, *args):
             return val.upper()
         map = _({"foo": "bar", "bar": "foo"}).map(mapTest)
-        self.assertEqual({"BAR", "FOO"}, set(map), "map for dicts did not work")
+        self.assertEqual({"BAR", "FOO"}, set(map),
+                         "map for dicts did not work")
         # alias
         map = _({"foo": "bar", "bar": "foo"}).collect(mapTest)
-        self.assertEqual({"BAR", "FOO"}, set(map), "collect for dicts did not work")
+        self.assertEqual({"BAR", "FOO"}, set(map),
+                         "collect for dicts did not work")
 
     def test_reduce(self):
-        res = _([1, 2, 3, 4, 5, 6]).reduce(lambda sum, num, *args: sum + num, 0)
+        res = _([1, 2, 3, 4, 5, 6]).reduce(
+            lambda sum, num, *args: sum + num, 0)
         self.assertEqual(21, res, "did not reduced correctly")
         # alias
         res = _([1, 2, 3, 4, 5, 6]).foldl(lambda sum, num, *args: sum + num, 0)
         self.assertEqual(21, res, "did not foldl correctly")
         # alias
-        res = _([1, 2, 3, 4, 5, 6]).inject(lambda sum, num, *args: sum + num, 0)
+        res = _([1, 2, 3, 4, 5, 6]).inject(
+            lambda sum, num, *args: sum + num, 0)
         self.assertEqual(21, res, "did not inject correctly")
 
     def test_reduce_right(self):
-        res = _(["foo", "bar", "baz"]).reduceRight(lambda sum, num, *args: sum + num)
+        res = _(["foo", "bar", "baz"]).reduceRight(
+            lambda sum, num, *args: sum + num)
         self.assertEqual("bazbarfoo", res, "did not reducedRight correctly")
         # alias
         res = _(["foo", "bar", "baz"]).foldr(lambda sum, num, *args: sum + num)
@@ -76,14 +86,17 @@ class TestCollections(unittest.TestCase):
         self.assertEqual(3, res, "detect didn't work")
 
     def test_filter(self):
-        res = _(["foo", "hello", "bar", "world"]).filter(lambda x, *args: len(x) > 3)
+        res = _(["foo", "hello", "bar", "world"]
+                ).filter(lambda x, *args: len(x) > 3)
         self.assertEqual(["hello", "world"], res, "filter didn't work")
         # alias
-        res = _(["foo", "hello", "bar", "world"]).select(lambda x, *args: len(x) > 3)
+        res = _(["foo", "hello", "bar", "world"]
+                ).select(lambda x, *args: len(x) > 3)
         self.assertEqual(["hello", "world"], res, "select didn't work")
 
     def test_reject(self):
-        res = _(["foo", "hello", "bar", "world"]).reject(lambda x, *args: len(x) > 3)
+        res = _(["foo", "hello", "bar", "world"]
+                ).reject(lambda x, *args: len(x) > 3)
         self.assertEqual(["foo", "bar"], res, "reject didn't work")
 
     def test_all(self):
@@ -112,12 +125,14 @@ class TestCollections(unittest.TestCase):
 
     def test_invoke(self):
         res = _(["foo", "bar"]).invoke(lambda x, *args: x.upper())
-        self.assertEqual(["FOO", "BAR"], res, "invoke with lambda did not work")
+        self.assertEqual(["FOO", "BAR"], res,
+                         "invoke with lambda did not work")
         res = _(["foo", "bar"]).invoke("upper")
         self.assertEqual(["FOO", "BAR"], res, "invoke with name did not work")
 
     def test_pluck(self):
-        res = _([{"name": "foo", "age": "29"}, {"name": "bar", "age": "39"}, {"name": "baz", "age": "49"}]).pluck('age')
+        res = _([{"name": "foo", "age": "29"}, {"name": "bar", "age": "39"},
+                {"name": "baz", "age": "49"}]).pluck('age')
         self.assertEqual(["29", "39", "49"], res, "pluck did not work")
 
     def test_min(self):
@@ -134,24 +149,31 @@ class TestCollections(unittest.TestCase):
                  {'age': '49', 'name': 'baz'}]).sortBy('age')
         self.assertEqual([{'age': '39', 'name': 'bar'},
                           {'age': '49', 'name': 'baz'},
-                          {'age': '59', 'name': 'foo'}], res, "filter by key did not work")
+                          {'age': '59', 'name': 'foo'}], res,
+                         "filter by key did not work")
 
         res = _([{'age': '59', 'name': 'foo'},
                  {'age': '39', 'name': 'bar'},
                  {'age': '49', 'name': 'baz'}]).sortBy(lambda x: x['age'])
-        self.assertEqual([{'age': '39', 'name': 'bar'}, {'age': '49', 'name': 'baz'}, {'age': '59', 'name': 'foo'}], res, "filter by lambda did not work")
+        self.assertEqual(
+            [{'age': '39', 'name': 'bar'}, {'age': '49', 'name': 'baz'},
+             {'age': '59', 'name': 'foo'}], res,
+            "filter by lambda did not work")
 
         res = _([50, 78, 30, 15, 90]).sortBy()
         self.assertEqual([15, 30, 50, 78, 90], res, "filter list did not work")
 
     def test_groupby(self):
         parity = _.groupBy([1, 2, 3, 4, 5, 6], lambda num, *args: num % 2)
-        self.assertTrue(0 in parity and 1 in parity, 'created a group for each value')
-        self.assertEqual(_(parity[0]).join(', '), '2, 4, 6', 'put each even number in the right group')
+        self.assertTrue(0 in parity and 1 in parity,
+                        'created a group for each value')
+        self.assertEqual(_(parity[0]).join(', '), '2, 4, 6',
+                         'put each even number in the right group')
 
         self.assertEqual(_.groupBy([1], lambda num, *args: num), [1])
 
-        llist = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
+        llist = ["one", "two", "three", "four", "five",
+                 "six", "seven", "eight", "nine", "ten"]
         grouped = _.groupBy(llist, lambda x, *args: len(x))
         self.assertEqual(_(grouped[3]).join(' '), 'one two six ten')
         self.assertEqual(_(grouped[4]).join(' '), 'four five nine')
@@ -164,7 +186,8 @@ class TestCollections(unittest.TestCase):
 
         self.assertEqual(_.countBy([1], lambda num, *args: num), 1)
 
-        llist = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
+        llist = ["one", "two", "three", "four", "five",
+                 "six", "seven", "eight", "nine", "ten"]
         grouped = _.countBy(llist, lambda x, *args: len(x))
         self.assertEqual(grouped[3], 4)
         self.assertEqual(grouped[4], 3)
@@ -181,14 +204,18 @@ class TestCollections(unittest.TestCase):
 
     def test_shuffle(self):
         res = _([5, 10, 15, 4, 8]).shuffle()
-        self.assertNotEqual([5, 10, 15, 4, 8], res, "shuffled array was the same")
+        self.assertNotEqual([5, 10, 15, 4, 8], res,
+                            "shuffled array was the same")
 
     def test_size(self):
-        self.assertEqual(_.size({"one": 1, "two": 2, "three": 3}), 3, 'can compute the size of an object')
-        self.assertEqual(_.size([1, 2, 3]), 3, 'can compute the size of an array')
+        self.assertEqual(_.size({"one": 1, "two": 2, "three": 3}),
+                         3, 'can compute the size of an object')
+        self.assertEqual(_.size([1, 2, 3]), 3,
+                         'can compute the size of an array')
 
     def test_where(self):
-        List = [{"a": 1, "b": 2}, {"a": 2, "b": 2}, {"a": 1, "b": 3}, {"a": 1, "b": 4}]
+        List = [{"a": 1, "b": 2}, {"a": 2, "b": 2},
+                {"a": 1, "b": 3}, {"a": 1, "b": 4}]
         result = _.where(List, {"a": 1})
         self.assertEqual(_.size(result), 3)
         self.assertEqual(result[-1]['b'], 4)
@@ -200,7 +227,8 @@ class TestCollections(unittest.TestCase):
         self.assertEqual(_.size(result), 3)
 
     def test_findWhere(self):
-        List = [{"a": 1, "b": 2}, {"a": 2, "b": 2}, {"a": 1, "b": 3}, {"a": 1, "b": 4}]
+        List = [{"a": 1, "b": 2}, {"a": 2, "b": 2},
+                {"a": 1, "b": 3}, {"a": 1, "b": 4}]
         result = _.findWhere(List, {"a": 1})
         self.assertEqual(result["a"], 1)
         self.assertEqual(result["b"], 2)
@@ -222,7 +250,8 @@ class TestCollections(unittest.TestCase):
 
         self.assertEqual(_.indexBy([1], lambda num, *args: num), 1)
 
-        llist = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
+        llist = ["one", "two", "three", "four", "five",
+                 "six", "seven", "eight", "nine", "ten"]
         grouped = _.indexBy(llist, lambda x, *args: len(x))
         self.assertEqual(grouped[3], 'ten')
         self.assertEqual(grouped[4], 'nine')
@@ -238,21 +267,33 @@ class TestCollections(unittest.TestCase):
 
         list = [0, 1, 2, 3, 4, 5]
 
-        self.assertEqual(_.partition(list, lambda x, *args: x < 4 ), [[0,1,2,3],[4,5]], 'handles bool return values')
-        self.assertEqual(_.partition(list, lambda x, *args: x & 1 ), [[1,3,5],[0,2,4]], 'handles 0 and 1 return values')
-        self.assertEqual(_.partition(list, lambda x, *args: x - 3 ), [[0,1,2,4,5],[3]], 'handles other numeric return values')
-        self.assertEqual(_.partition(list, lambda x, *args: None if x > 1 else True ), [[0,1],[2,3,4,5]], 'handles null return values')
+        self.assertEqual(_.partition(list, lambda x, *args: x < 4),
+                         [[0, 1, 2, 3], [4, 5]], 'handles bool return values')
+        self.assertEqual(_.partition(list, lambda x, *args: x & 1),
+                         [[1, 3, 5], [0, 2, 4]],
+                         'handles 0 and 1 return values')
+        self.assertEqual(_.partition(list, lambda x, *args: x - 3),
+                         [[0, 1, 2, 4, 5], [3]],
+                         'handles other numeric return values')
+        self.assertEqual(
+            _.partition(list, lambda x, *args: None if x > 1 else True),
+            [[0, 1], [2, 3, 4, 5]], 'handles null return values')
 
         # Test an object
-        result = _.partition({"a": 1, "b": 2, "c": 3}, lambda x, *args: x > 1 )
+        result = _.partition({"a": 1, "b": 2, "c": 3}, lambda x, *args: x > 1)
         # Has to handle difference between python3 and python2
-        self.assertTrue((result == [[3, 2], [1]] or result == [[2, 3], [1]]), 'handles objects')
+        self.assertTrue(
+            (result == [[3, 2], [1]] or result == [[2, 3], [1]]),
+            'handles objects')
 
         # Default iterator
-        self.assertEqual(_.partition([1, False, True, '']), [[1, True], [False, '']], 'Default iterator')
-        self.assertEqual(_.partition([{"x": 1}, {"x": 0}, {"x": 1}], 'x'), [[{"x": 1}, {"x": 1}], [{"x": 0}]], 'Takes a string')
+        self.assertEqual(_.partition([1, False, True, '']),
+                         [[1, True], [False, '']], 'Default iterator')
+        self.assertEqual(_.partition([{"x": 1}, {"x": 0}, {"x": 1}], 'x'),
+                         [[{"x": 1}, {"x": 1}], [{"x": 0}]], 'Takes a string')
 
 
 if __name__ == "__main__":
-    print ("run these tests by executing `python -m unittest discover` in unittests folder")
+    print("run these tests by executing `python -m unittest"
+          " discover` in unittests folder")
     unittest.main()

@@ -9,6 +9,7 @@ from threading import Timer
 
 
 class _IdCounter(object):
+
     """ A Global Dictionary for uniq IDs
     """
     count = 0
@@ -16,11 +17,13 @@ class _IdCounter(object):
 
 
 class __(object):
+
     """
     Use this class to alter __repr__ of
     underscore object. So when you are using
     it on your project it will make sense
     """
+
     def __init__(self, repr, func):
         self._repr = repr
         self._func = func
@@ -52,6 +55,7 @@ def _(obj):
 
 
 class underscore(object):
+
     """
     Instead of creating a class named _ (underscore) I created underscore
     So I can use _ function both statically and dynamically just it
@@ -88,6 +92,7 @@ class underscore(object):
         self.object = obj
 
         class Namespace(object):
+
             """ For simulating full closure support
             """
             pass
@@ -246,7 +251,7 @@ class underscore(object):
     def reject(self, func):
         """ Return all the elements for which a truth test fails.
         """
-        return self._wrap(list(filter(lambda value: not func(value), self.obj)))
+        return self._wrap(list(filter(lambda val: not func(val), self.obj)))
 
     def all(self, func=None):
         """ Determine whether all of the elements match a truth test.
@@ -315,7 +320,8 @@ class underscore(object):
 
     def where(self, attrs=None, first=False):
         """
-        Convenience version of a common use case of `filter`: selecting only objects
+        Convenience version of a common use case of `filter`:
+        selecting only objects
         containing specific `key:value` pairs.
         """
         if attrs is None:
@@ -336,7 +342,8 @@ class underscore(object):
 
     def findWhere(self, attrs=None):
         """
-        Convenience version of a common use case of `find`: getting the first object
+        Convenience version of a common use case of `find`:
+        getting the first object
         containing specific `key:value` pairs.
         """
         return self._wrap(self._clean.where(attrs, True))
@@ -422,8 +429,8 @@ class underscore(object):
 
     def indexBy(self, val=None):
         """
-        Indexes the object's values by a criterion, similar to `groupBy`, but for
-        when you know that your index values will be unique.
+        Indexes the object's values by a criterion, similar to
+        `groupBy`, but for when you know that your index values will be unique.
         """
         if val is None:
             val = lambda *args: args[0]
@@ -746,8 +753,8 @@ class underscore(object):
 
     def partial(self, *args):
         """
-        Partially apply a function by creating a version that has had some of its
-        arguments pre-filled, without changing its dynamic `this` context.
+        Partially apply a function by creating a version that has had some of
+        its arguments pre-filled, without changing its dynamic `this` context.
         """
         def part(*args2):
             args3 = args + args2
@@ -797,8 +804,7 @@ class underscore(object):
         Defers a function, scheduling it to run after
         the current call stack has cleared.
         """
-        ## I know! this isn't really a defer in python. I'm open to suggestions
-        #######################################################################
+        # I know! this isn't really a defer in python. I'm open to suggestions
         return self.delay(1, *args)
 
     def throttle(self, wait):
@@ -953,7 +959,9 @@ class underscore(object):
         return self._wrap(pairs)
 
     def invert(self):
-        """ Invert the keys and values of an object. The values must be serializable.
+        """
+        Invert the keys and values of an object.
+        The values must be serializable.
         """
         keys = self._clean.keys()
         inverted = {}
@@ -1281,7 +1289,9 @@ class underscore(object):
         return self._wrap(self.obj)
 
     def property(self):
-        """ For easy creation of iterators that pull specific properties from objects.
+        """
+        For easy creation of iterators that pull
+        specific properties from objects.
         """
         return self._wrap(lambda obj, *args: obj[self.obj])
 
@@ -1301,7 +1311,6 @@ class underscore(object):
             return True
 
         return self._wrap(ret)
-
 
     def times(self, func, *args):
         """ Run a function **n** times.
@@ -1583,9 +1592,9 @@ class underscore(object):
     def makeStatic():
         """ Provide static access to underscore class
         """
+        p = lambda value: inspect.ismethod(value) or inspect.isfunction(value)
         for eachMethod in inspect.getmembers(underscore,
-                                             predicate=lambda value: inspect.ismethod(value) or
-                                             inspect.isfunction(value)):
+                                             predicate=p):
             m = eachMethod[0]
             if not hasattr(_, m):
                 def caller(a):

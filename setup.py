@@ -10,4 +10,4 @@ setup(name='underscore.py',
       url='https://github.com/serkanyersen/underscore.py/',
       packages=['underscore'],
       package_dir={'underscore': 'src'}
-     )
+      )
