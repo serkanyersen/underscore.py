@@ -377,9 +377,11 @@ class underscore(object):
         else:
             return self._wrap(sorted(self.obj))
 
-    def _lookupIterator(self, obj, val):
+    def _lookupIterator(self, val):
         """ An internal function to generate lookup iterators.
         """
+        if val is None:
+            return lambda el, *args: el
         return val if _.isCallable(val) else lambda obj, *args: obj[val]
 
     def _group(self, obj, val, behavior):
@@ -387,7 +389,7 @@ class underscore(object):
         """
         ns = self.Namespace()
         ns.result = {}
-        iterator = self._lookupIterator(obj, val)
+        iterator = self._lookupIterator(val)
 
         def e(value, index, *args):
             key = iterator(value, index)
@@ -564,6 +566,21 @@ class underscore(object):
                     newlist.append(v)
 
         return self._wrap(newlist)
+
+    def partition(self, predicate=None):
+        """
+        Split an array into two arrays: one whose elements all satisfy the given
+        predicate, and one whose elements all do not satisfy the predicate.
+        """
+        predicate = self._lookupIterator(predicate)
+        pass_list = []
+        fail_list = []
+
+        def by(elem, index, *args):
+            (pass_list if predicate(elem) else fail_list).append(elem)
+
+        _.each(self.obj, by)
+        return [pass_list, fail_list]
 
     def uniq(self, isSorted=False, iterator=None):
         """
