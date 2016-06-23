@@ -58,7 +58,7 @@ class underscore(object):
 
     """
     Instead of creating a class named _ (underscore) I created underscore
-    So I can use _ function both statically and dynamically just it
+    So I can use _ function both statically and dynamically just as it
     is in the original underscore
     """
 
