@@ -3,5 +3,7 @@ python:
   - 2.7
   - 3.3
 
-# command to run tests
-script: cd tests && python -m unittest discover
+before_script:
+  - pip install -r test-requirements.txt
+
+script: nose2 --verbose
