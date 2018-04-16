@@ -1,7 +1,10 @@
 language: python
 python:
   - 2.7
-  - 3.3
+  - 3.4
+  - 3.5
 
-# command to run tests
-script: cd tests && python -m unittest discover
+install:
+  - pip install -r test-requirements.txt
+
+script: nose2 --verbose

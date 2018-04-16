@@ -47,3 +47,5 @@ nosetests.xml
 .project
 .pydevproject
 run.py
+
+env/
