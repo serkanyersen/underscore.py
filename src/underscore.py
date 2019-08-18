@@ -362,6 +362,54 @@ class underscore(object):
             return self._wrap(list())
         return self._wrap(min(self.obj))
 
+    def list_min_index_value(self):
+        """
+            Given a list, returns the index which has the minimum value, along with the value.
+            It assumes the values are comparable objects eg integers, strings, objects that implement __cmp__
+            :param values_list: A list to be searched upon
+            :return: A list of index(es) that have the minimum value
+        """
+
+        if len(self.obj) == 0:
+            return self._wrap([])
+
+        min_value = min(self.obj)
+        how_many = self.obj.count(min_value)
+        c = -1
+        index_list = []
+        for idx, value in enumerate(self.obj):
+            if value == min_value:
+                index_list.append(idx)
+
+                if len(index_list) > how_many:
+                    break
+
+        return self._wrap(index_list)
+
+    def list_max_index_value(self):
+        """
+            Given a list, returns the index which has the maximum value, along with the value.
+            It assumes the values are comparable objects eg integers, strings, objects that implement __cmp__
+            :param values_list: A list to be searched upon
+            :return: A list of index(es) that have the maximum value
+        """
+
+        if len(self.obj) == 0:
+            return self._wrap([])
+
+        max_value = max(self.obj)
+        how_many = self.obj.count(max_value)
+        index_list = []
+        for idx, value in enumerate(self.obj):
+            if value == max_value:
+                index_list.append(idx)
+
+                if len(index_list) >= how_many:
+                    break
+
+
+        return self._wrap(index_list)
+
     def shuffle(self):
         """ Shuffle an array.
         """

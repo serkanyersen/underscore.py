@@ -179,6 +179,37 @@ class TestArrays(unittest.TestCase):
                          [0, -1, -2, -3, -4, -5, -6, -7, -8, -9], 'final'
                          ' example in the Python docs')
 
+    def test_min_list(self):
+        res = _([-55, -55, -7, 15, 2, 1, -7, 4]).list_min_index_value()
+        expected = [0, 1]
+        assert res == expected
+
+    def test_min_empty_list(self):
+        res = _([]).list_min_index_value()
+        expected = []
+        assert res == expected
+
+    def test_min_one_value(self):
+        res = _([2, 2, 2, 2]).list_min_index_value()
+        expected = [0, 1, 2, 3]
+        assert res == expected
+
+    def test_max_list(self):
+        res = _([-55, -55, -7, 15, 2, 1, -7, 4]).list_max_index_value()
+        expected = [3]
+        assert res == expected
+
+    def test_max_empty_list(self):
+        res = _([]).list_max_index_value()
+        expected = []
+        assert res == expected
+
+    def test_max_one_value(self):
+        res = _([2, 2, 2, 2]).list_max_index_value()
+        expected = [0, 1, 2, 3]
+        assert res == expected
+
+
 if __name__ == "__main__":
     print("run these tests by executing `python -m unittest"
           " discover` in unittests folder")
