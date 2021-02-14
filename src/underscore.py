@@ -676,19 +676,24 @@ class underscore(object):
                 args[i].append(None)
         return self._wrap(zip(*args))
 
-    def zipObject(self, values):
+    def zipObject(self, values = None):
         """
         Zip together two arrays -- an array of keys and an array
-        of values -- into a single object.
+        of values -- into a single object. Or pass a single array 
+        of `[key, value]` (the reverse of `_.pairs`)
         """
         result = {}
         keys = self.obj
-        i = 0
-        l = len(keys)
-        while i < l:
-            result[keys[i]] = values[i]
+        if values:
+            i = 0
             l = len(keys)
-            i += 1
+            while i < l:
+                result[keys[i]] = values[i]
+                l = len(keys)
+                i += 1
+        else:
+            for k, v in keys:
+                result[k] = v;
 
         return self._wrap(result)
 
