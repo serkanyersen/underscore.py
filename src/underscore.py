@@ -124,7 +124,7 @@ class underscore(object):
 
     @obj.setter
     def obj(self, value):
-        """ New style classes requires setters for @propert methods
+        """ New style classes requires setters for @property methods
         """
         self.object = value
         return self.object
