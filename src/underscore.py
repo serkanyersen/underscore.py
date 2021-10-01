@@ -1,16 +1,67 @@
 #!/usr/bin/env python
 import inspect
+try:
+    import idc
+    import idautils
+    import idaapi
+    #  from sftools import get_ea_by_any
+except ImportError:
+    pass
 from types import *
 import re
 import functools
 import random
 import time
 from threading import Timer
+from collections import Sequence
+import six
+from six.moves import builtins
 
+# https://stackoverflow.com/questions/42095393/python-map-a-function-over-recursive-iterables
+def recursive_map(seq, func):
+    for item in seq:
+        if isinstance(item, Sequence):
+            yield type(item)(recursive_map(item, func))
+        else:
+            yield func(item)
+
+
+def _makeSequenceMapper(f):
+    def fmap(seq, iteratee):
+        return recursive_map(seq, iteratee)
+    def function(item):
+        if str(type(item)) == "<class 'generator'>":
+            return [f(x) for x in item]
+        if isinstance(item, Sequence):
+            return type(item)(fmap(item, f))
+        return [f(item)]
+    return function
+
+_asList = _makeSequenceMapper(lambda x: x)
+
+def Array(o):
+    if o is None:
+        return []
+    elif isinstance(o, list):
+        return o
+    else:
+        return list([o])
+
+def xrefs_to(ea, types=None):
+
+    if types is None:
+        types = [ idc.fl_CF,
+                         idc.fl_CN,
+                         idc.fl_JF,
+                         idc.fl_JN,
+                       # idc.fl_F 
+                       ]
+
+    return [x.frm for x in idautils.XrefsTo(ea)]
 
 class _IdCounter(object):
 
-    """ A Global Dictionary for uniq IDs
+    """ Array Global Dictionary for uniq IDs
     """
     count = 0
     pass
@@ -55,6 +106,8 @@ def _(obj):
 
 
 class underscore(object):
+
+    fns = dict()
 
     """
     Instead of creating a class named _ (underscore) I created underscore
@@ -168,23 +221,46 @@ class underscore(object):
         """
         iterates through each item of an object
         :Param: func iterator function
+
+        underscore.js:
+        Iterates over a list of elements, yielding each in turn to an iteratee
+        function. The iteratee is bound to the context object, if one is
+        passed. Each invocation of iteratee is called with three arguments:
+            (element, index, list). 
+        If list is a JavaScript object, iteratee's arguments will be (value,
+        key, list). Returns the list for chaining.
         """
-        if self._clean.isTuple() or self._clean.isList():
-            for index, value in enumerate(self.obj):
-                r = func(value, index, self.obj)
+        if callable(getattr(self._clean.obj, 'items', None)):
+            for key, value in self.obj.items():
+                r = func(value, key, self.obj)
                 if r is "breaker":
                     break
         else:
-            for index, key in enumerate(self.obj):
-                r = func(self.obj[key], key, self.obj, index)
+            for index, value in enumerate(self.obj):
+                r = func(value, index, self.obj)
                 if r is "breaker":
                     break
         return self._wrap(self)
     forEach = each
 
-    def map(self, func):
+    def mapObject(self, func):
         """ Return the results of applying the iterator to each element.
         """
+        if self._clean.isDict():
+            newlist = {}
+            for i, k in enumerate(self.obj):
+                # if k not in values:  # use indexof to check identity
+                k2, v2 = func(self.obj[k], k, self.obj)
+                newlist[k2] = v2
+
+        return self._wrap(newlist)
+
+    def map(self, func=None):
+        """ Return the results of applying the iterator to each element.
+        """
+        if func is None:
+            func = lambda x, *a: x
+
         ns = self.Namespace()
         ns.results = []
 
@@ -248,6 +324,76 @@ class underscore(object):
         return self._wrap(list(filter(func, self.obj)))
     select = filter
 
+    def remove(self, func):
+        """ 
+        Removes all elements from array that predicate returns truthy for
+        and returns an array of the removed elements. The predicate is invoked
+        with three arguments: (value, index, array).
+        """
+        ns = self.Namespace()
+        ns.remove = []
+        ns.result = []
+        obj = self.obj
+
+        def by(value, index, list):
+            if func(value, index, list):
+                ns.remove.append(index)
+                ns.result.append(value)
+
+        _(obj).each(by)
+        ns.remove.reverse()
+
+        for index in ns.remove:
+            try:
+                self.obj.pop(index)
+            except ValueError:
+                print("{} is not in {}".format(index, self.obj))
+
+        return self._wrap(ns.result)
+
+
+    def without(self, *values):
+        """
+        Return a version of the array that does not contain the specified
+        value(s), or object that doesn't contain the specified key(s)
+        """
+        if self._clean.isDict():
+            newlist = {}
+            for i, k in enumerate(self.obj):
+                # if k not in values:  # use indexof to check identity
+                if _(values).indexOf(k) == -1:
+                    newlist[k] = self.obj[k]
+        else:
+            newlist = []
+            for i, v in enumerate(self.obj):
+                # if v not in values:  # use indexof to check identity
+                if _(values).indexOf(v) is -1:
+                    newlist.append(v)
+
+        return self._wrap(newlist)
+
+    def only(self, *values):
+        """
+        Return a version of the array that only contains the specified
+        value(s), or object that only contains the specified key(s)
+        """
+        if self._clean.isDictlike():
+            newlist = {}
+            for i, k in enumerate(self.obj):
+                # if k not in values:  # use indexof to check identity
+                if _(values).indexOf(k) != -1:
+                    newlist[k] = self.obj[k]
+        else:
+            newlist = []
+            for i, v in enumerate(self.obj):
+                # if v not in values:  # use indexof to check identity
+                if _(values).indexOf(v) != -1:
+                    newlist.append(v)
+
+        return self._wrap(newlist)
+
+
+
     def reject(self, func):
         """ Return all the elements for which a truth test fails.
         """
@@ -267,6 +413,18 @@ class underscore(object):
         self._clean.each(testEach)
         return self._wrap(self.altmp)
     every = all
+
+    def same(self):
+        """ 
+        Determine if all of the elements hold the same value. Returns False
+        if there are no elements.
+        """
+        if not self._clean.obj or not len(self._clean.obj):
+            return False
+        _first = _.first(self._clean.obj)
+        return self.all(lambda x, *a: x == _first)
+        
+
 
     def any(self, func=None):
         """
@@ -316,7 +474,55 @@ class underscore(object):
         Convenience version of a common use case of
         `map`: fetching a property.
         """
+
+        # allow pluck to operate on numeric indexes to quickly
+        # grab items from tuples and lists
+        if _.isInt(key):
+            return list(list(zip(*self.obj))[key])
+
         return self._wrap([x.get(key) for x in self.obj])
+
+    def re_findall(self, pattern, flags=0):
+        """
+        Return a list of all non-overlapping matches in the string.
+        
+        If one or more capturing groups are present in the pattern, return
+        a list of groups; this will be a list of tuples if the pattern
+        has more than one group.
+        
+        Empty matches are included in the result.
+        """
+        results = []
+        for ob in Array(self.obj):
+            results.extend(re.findall(pattern, ob))
+
+        return self._wrap(results)
+
+
+    # _([idc.get_screen_ea()]).chain().
+    #    code_refs_to().
+    #    func_start().
+    #    code_refs_to().
+    #    map(lambda x, *y: GetFunctionName(x)).filter(lambda x, *y: x.startswith('sub_')).
+    #    invoke(lambda x, *y: LabelAddressPlus(LocByName( x ), 'allocsub_%s' % x[4:]))
+    def ida_code_refs_to(self):
+        return self._wrap(self._flatten(_(asList(self.obj)).map(lambda x, *y: asList(idautils.CodeRefsTo(x, 0))), shallow=True))
+
+    def ida_func_start(self):
+        return self._wrap(self._flatten(_(asList(self.obj)).map(lambda x, *y: GetFuncStart(x)), shallow=True))
+
+    def ida_decompile(self):
+        return self._wrap([str(idaapi.decompile(get_ea_by_any(e), hf=None, flags=idaapi.DECOMP_WARNINGS)) for e in self.obj])
+
+    def ida_xrefs_to(self):
+        return self._wrap([xrefs_to(get_ea_by_any(e)) for e in self.obj])
+
+    def ida_all_xrefs_from(self):
+        def iter(x):
+            if x[2] == 'fl_CN':
+                return x[0]
+            return None
+        return self._wrap(_.uniq(_.filter(self._flatten(self.obj + [all_xrefs_from(get_ea_by_any(e), iteratee=iter) for e in self.obj]), lambda x, *a: x)))
 
     def where(self, attrs=None, first=False):
         """
@@ -355,12 +561,27 @@ class underscore(object):
             return self._wrap(list())
         return self._wrap(max(self.obj))
 
+    def maxBy(self, key):
+        """ Return the maximum element or (element-based computation).
+        """
+        if(self._clean.isDict()):
+            return self._wrap(list())
+        return self._wrap(max(self.obj, key=key))
+
+
     def min(self):
         """ Return the minimum element (or element-based computation).
         """
         if(self._clean.isDict()):
             return self._wrap(list())
         return self._wrap(min(self.obj))
+
+    def minBy(self, key):
+        """ Return the minimum element or (element-based computation).
+        """
+        if(self._clean.isDict()):
+            return self._wrap(list())
+        return self._wrap(min(self.obj, key=key))
 
     def shuffle(self):
         """ Shuffle an array.
@@ -373,17 +594,48 @@ class underscore(object):
         random.shuffle(cloned)
         return self._wrap(cloned)
 
-    def sortBy(self, val=None):
+    def reverse(self):
+        cloned = self.obj[:]
+        cloned.reverse()
+        return self._wrap(cloned)
+
+    def sort(self, val=None):
         """ Sort the object's values by a criterion produced by an iterator.
         """
         if val is not None:
+                return self._wrap(sorted(self.obj, cmp=val))
+        else:
+            return self._wrap(sorted(self.obj))
+
+    def sortBy(self, val=None):
+        """ 
+        Sort the object's values by a criterion produced by an iterator or
+        attribute name.
+        """
+        #  def get(obj, key):
+            #  if callable(getattr(obj, 'get', None)):
+                #  return obj.get(key)
+            #  return getattr(obj, key)
+
+        if val is not None:
             if _(val).isString():
                 return self._wrap(sorted(self.obj, key=lambda x,
-                                  *args: x.get(val)))
+                                  *args: _.get(x, val)))
             else:
                 return self._wrap(sorted(self.obj, key=val))
         else:
             return self._wrap(sorted(self.obj))
+
+    def sortObjectBy(self, val=None, reverse=None):
+        """ Sort the object's values by a criterion produced by an iterator.
+        """
+        keys = _.sortBy(self.obj, val)
+        if reverse:
+            keys.reverse()
+        o = {}
+        for k in keys:
+            o[k] = self.obj[k]
+        return self._wrap(o)
 
     def _lookupIterator(self, val):
         """ An internal function to generate lookup iterators.
@@ -405,11 +657,12 @@ class underscore(object):
 
         _.each(obj, e)
 
-        if len(ns.result) == 1:
-            try:
-                return ns.result[0]
-            except KeyError:
-                return list(ns.result.values())[0]
+        if False:
+            if len(ns.result) == 1:
+                try:
+                    return ns.result[0]
+                except KeyError:
+                    return list(ns.result.values())[0]
         return ns.result
 
     def groupBy(self, val):
@@ -426,6 +679,15 @@ class underscore(object):
         res = self._group(self.obj, val, by)
 
         return self._wrap(res)
+
+    def grouper(self, n, fillvalue=None):
+        """
+        https://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks/312644#312644
+        > grouper(3, 'abcdefg', 'x') --> ('a','b','c'), ('d','e','f'), ('g','x','x')
+        """
+        # from itertools import zip_longest # for Python 3.x
+        from six.moves import zip_longest # for both (uses the six compat library)
+        return zip_longest(*[iter(self.obj)]*n, fillvalue=fillvalue)
 
     def indexBy(self, val=None):
         """
@@ -492,9 +754,17 @@ class underscore(object):
         first N values in the array. Aliased as `head` and `take`.
         The **guard** check allows it to work with `_.map`.
         """
-        res = self.obj[0:n]
+        keys = _.keys(self.obj)[0:n]
+        res = [self.obj[x] for x in keys]
         if len(res) is 1:
             res = res[0]
+
+        #  keys = getattr(self.obj, 'keys', None)
+        #  res = []
+        #  for i, v in enumerate(self.obj):
+            #  if i >= n:
+                #  break
+            #  res.append(v)
         return self._wrap(res)
     head = take = first
 
@@ -558,26 +828,6 @@ class underscore(object):
         """
         return self._wrap(self._flatten(self.obj, shallow))
 
-    def without(self, *values):
-        """
-        Return a version of the array that does not
-        contain the specified value(s).
-        """
-        if self._clean.isDict():
-            newlist = {}
-            for i, k in enumerate(self.obj):
-                # if k not in values:  # use indexof to check identity
-                if _(values).indexOf(k) is -1:
-                    newlist.set(k, self.obj[k])
-        else:
-            newlist = []
-            for i, v in enumerate(self.obj):
-                # if v not in values:  # use indexof to check identity
-                if _(values).indexOf(v) is -1:
-                    newlist.append(v)
-
-        return self._wrap(newlist)
-
     def partition(self, predicate=None):
         """
         Split an array into two arrays: one whose elements all satisfy the given
@@ -622,6 +872,32 @@ class underscore(object):
         # ret = [x for x in seq if x not in seen and not seen_add(x)]
         # return self._wrap(ret)
     unique = uniq
+
+    def sum(self, iterator=None):
+        """
+        Add shit up -- todo
+        """
+        ns = self.Namespace()
+        ns.results = []
+        ns.array = self.obj
+        initial = self.obj
+        if iterator is not None:
+            initial = _(ns.array).map(iterator)
+
+        def by(memo, value, index):
+            if ((_.last(memo) != value or
+                 not len(memo)) if isSorted else not _.include(memo, value)):
+                memo.append(value)
+                ns.results.append(ns.array[index])
+
+            return memo
+
+        ret = _.reduce(initial, by)
+        return self._wrap(ret)
+        # seen = set()
+        # seen_add = seen.add
+        # ret = [x for x in seq if x not in seen and not seen_add(x)]
+        # return self._wrap(ret)
 
     def union(self, *args):
         """
@@ -715,7 +991,8 @@ class underscore(object):
             i = 0
             l = len(array)
             while i < l:
-                if array[i] is item:
+                # array[i] is item -- fails under py3
+                if array[i] == item:
                     return self._wrap(i)
                 i += 1
         return self._wrap(ret)
@@ -755,6 +1032,11 @@ class underscore(object):
         """
         return self._wrap(self.obj)
     curry = bind
+
+    def partialx(func, *args):
+        def part(*args_rest):
+            return func(*(args + args_rest)) 
+        return part
 
     def partial(self, *args):
         """
@@ -944,14 +1226,27 @@ class underscore(object):
     """
 
     def keys(self):
-        """ Retrieve the names of an object's properties.
+        """ 
+        Retrieve the names of an object's properties.
+        (extended) will attempt to obtain some index list for non-objects, such
+        that they can be used in slicing
+
         """
-        return self._wrap(self.obj.keys())
+        #  keys = self.obj.keys()
+        #  if type(keys) == "<class 'dict_keys'>":
+            #  keys = [x for x in keys]
+        if self._clean.isList() or self._clean.isTuple():
+            return self._wrap(_.map(_.range(len(self.obj))))
+        
+        try:
+            return self._wrap(list(self.obj.keys()))
+        except AttributeError:
+            return self._wrap(list(dir(self.obj)))
 
     def values(self):
         """ Retrieve the values of an object's properties.
         """
-        return self._wrap(self.obj.values())
+        return self._wrap(list(self.obj.values()))
 
     def pairs(self):
         """ Convert an object into a list of `[key, value]` pairs.
@@ -992,9 +1287,28 @@ class underscore(object):
         Extend a given object with all the properties in
         passed-in object(s).
         """
-        args = list(args)
-        for i in args:
-            self.obj.update(i)
+        #  args = list(args)
+        """
+        update(...)
+            D.update([E, ]**F) -> None.  Update D from dict/iterable E and F.
+            If E is present and has a .keys() method, then does:  for k in E: D[k] = E[k]
+            If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v
+            In either case, this is followed by: for k in F:  D[k] = F[k]
+        """
+
+        if hasattr(self.obj, 'update'):
+            for i in args:
+                self.obj.update(i)
+        else:
+            for i in args:
+                if callable(getattr(i, 'keys', None)):
+                    for k in i:
+                        #  self.obj[k] = i[k]
+                        setattr(self.obj, k, i[k])
+                else:
+                    for k, v in i:
+                        #  self.obj[k] = v
+                        setattr(self.obj, k, v)
 
         return self._wrap(self.obj)
 
@@ -1006,9 +1320,13 @@ class underscore(object):
         ns = self.Namespace()
         ns.result = {}
 
+        #  def by(key, *args):
+            #  if key in self.obj:
+                #  ns.result[key] = self.obj[key]
+
         def by(key, *args):
-            if key in self.obj:
-                ns.result[key] = self.obj[key]
+            if _.get(self.obj, key, 'nop6690') != 'nop6690':
+                ns.result[key] = _.get(self.obj, key)
 
         _.each(self._flatten(args, True, []), by)
         return self._wrap(ns.result)
@@ -1276,6 +1594,28 @@ class underscore(object):
         given property directly on itself (in other words, not on a prototype).
         """
         return self._wrap(hasattr(self.obj, key))
+
+    def get(self, key, _default=None):
+        if callable(getattr(self.obj, 'get', None)):
+            return self._wrap(self.obj.get(key, _default))
+        return self._wrap(getattr(self.obj, key, _default))
+
+    def getmanyattr(self, *args):
+        """
+        getmanyattr(object, name1[, name2 ,[name3 ,...]], default]) -> value
+        
+        Get a name attributes from an object; getmanyattr(x, 'y', 'z', None) is
+        equivalent to [x.y, x.z].  The default argument it is returned when the
+        attribute doesn't exist.
+        """
+        default = args[-1]
+        return self._wrap([getattr(self.obj, key, default) for key in args[0:-1]])
+
+    def isDictlike(self):
+        return self._wrap(_.all(_.getmanyattr(self.obj, 'values', 'keys', 'get', None), lambda x, *a: callable(x)))
+
+    def isListlike(self):
+        return self._wrap(_.all(_.getmanyattr(self.obj, 'append', 'remove', '__len__', None), lambda x, *a: callable(x)))
 
     def join(self, glue=" "):
         """ Javascript's join implementation
@@ -1598,9 +1938,9 @@ class underscore(object):
         """ Provide static access to underscore class
         """
         p = lambda value: inspect.ismethod(value) or inspect.isfunction(value)
-        for eachMethod in inspect.getmembers(underscore,
-                                             predicate=p):
+        for eachMethod in inspect.getmembers(underscore, predicate=p):
             m = eachMethod[0]
+            d = eachMethod[1].__doc__
             if not hasattr(_, m):
                 def caller(a):
                     def execute(*args):
@@ -1612,8 +1952,14 @@ class underscore(object):
                         else:
                             r = getattr(underscore([]), a)()
                         return r
+                    execute.__doc__ = d
                     return execute
+                    
+               
+
                 _.__setattr__(m, caller(m))
+                getattr(_, m).__name__ = m
+
         # put the class itself as a parameter so that we can use it on outside
         _.__setattr__("underscore", underscore)
         _.templateSettings = {}

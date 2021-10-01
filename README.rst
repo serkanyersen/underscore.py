@@ -1,7 +1,7 @@
 underscore
 
 Using underscore
-============
+================
 
 .. code-block:: python
 
