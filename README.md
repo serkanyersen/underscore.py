@@ -7,6 +7,12 @@
       \/___/  \/_/\/_/\/__,_ /\/____/ \/_/ \/___/  \/____/\/___/  \/_/ \/____/\/_/\ \ \/  `/___/> \
                                                                                    \ \_\     /\___/
                                                                                     \/_/     \/__/
+                                                                                    
+This is an update for python3 of: github.com/serkanyersen/underscore.py.git
+
+
+---
+
 
 Underscore.py is a python port of excellent javascript library underscore.js
 
@@ -16,8 +22,6 @@ Underscore.py is a python port of excellent javascript library underscore.js
     usual functional suspects (each, map, reduce, filter...) without extending any core JavaScript objects.
 
 NOTE: It's obvious that python already has nearly all features of underscore library built-in. I'm not trying to fill any gap in python. If you are coming from JavaScript this library will provide you a familiar interface, a set of tools you already know how to use and micro templating functionality. Use it wisely and try to use built-in functions wherever possible.
-
-[![Build Status](https://travis-ci.org/serkanyersen/underscore.py.png?branch=master)](https://travis-ci.org/serkanyersen/underscore.py)
 
 ## Installing
 
