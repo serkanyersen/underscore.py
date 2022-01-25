@@ -1,11 +1,11 @@
-underscore
+underscore3
 
-Using underscore
-================
+Using underscore3
+=================
 
 .. code-block:: python
 
-    import underscore
+    import underscore3
     
     # example usage
     

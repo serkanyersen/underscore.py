@@ -1,12 +1,12 @@
 from setuptools import setup, find_packages
 
-VERSION="0.0.1"
+VERSION="0.0.2"
 with open("README.rst", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 setup(
-    name='underscore',
+    name='underscore3',
     version=VERSION,
-    url='https://github.com/sfinktah/underscore',
+    url='https://github.com/sfinktah/underscore3',
     long_description=long_description,
     long_description_content_type="text/x-rst",
     license='MIT',

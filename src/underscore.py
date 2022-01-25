@@ -115,7 +115,7 @@ class underscore(object):
     is in the original underscore
     """
 
-    object = None
+    _object = None
     """ Passed object
     """
 
@@ -142,7 +142,7 @@ class underscore(object):
         """ Let there be light
         """
         self.chained = False
-        self.object = obj
+        self._object = obj
 
         class Namespace(object):
 
@@ -173,14 +173,14 @@ class underscore(object):
         if self._wrapped is not self.Null:
             return self._wrapped
         else:
-            return self.object
+            return self._object
 
     @obj.setter
     def obj(self, value):
         """ New style classes requires setters for @propert methods
         """
-        self.object = value
-        return self.object
+        self._object = value
+        return self._object
 
     def _wrap(self, ret):
         """
@@ -216,6 +216,18 @@ class underscore(object):
     """
     Collection Functions
     """
+    def items(self):
+        """
+        generator: iterates through each item of an dict or list, 
+        using index for a key if not a dict. same as:
+        enumerate(list) or dict.items()
+        """
+        if self.hasCallable('items'):
+            for key, value in self._clean.obj.items():
+                yield key, value
+        else:
+            for key, value in enumerate(self._clean.obj):
+                yield key, value
 
     def each(self, func):
         """
@@ -233,12 +245,12 @@ class underscore(object):
         if callable(getattr(self._clean.obj, 'items', None)):
             for key, value in self.obj.items():
                 r = func(value, key, self.obj)
-                if r is "breaker":
+                if r == "breaker":
                     break
         else:
             for index, value in enumerate(self.obj):
                 r = func(value, index, self.obj)
-                if r is "breaker":
+                if r == "breaker":
                     break
         return self._wrap(self)
     forEach = each
@@ -246,12 +258,11 @@ class underscore(object):
     def mapObject(self, func):
         """ Return the results of applying the iterator to each element.
         """
-        if self._clean.isDict():
-            newlist = {}
-            for i, k in enumerate(self.obj):
-                # if k not in values:  # use indexof to check identity
-                k2, v2 = func(self.obj[k], k, self.obj)
-                newlist[k2] = v2
+        newlist = {}
+        for k, v in self._clean.items():
+            # if k not in values:  # use indexof to check identity
+            k2, v2 = func(v, k, self.obj)
+            newlist[k2] = v2
 
         return self._wrap(newlist)
 
@@ -318,6 +329,19 @@ class underscore(object):
         return self._wrap(self.ftmp)
     detect = find
 
+    def filterObject(self, func):
+        """ Return all the items that pass a truth test
+        """
+
+        if self._clean.isDictlike():
+            # https://stackoverflow.com/questions/2844516/how-to-filter-a-dictionary-according-to-an-arbitrary-condition-function
+            # method a: {k: v for k, v in r.items() if not v['data'].startswith('False')}; 
+            # method b: dict((k, v) for k, v in r.items() if not v['data'].startswith('False'))
+            return self._wrap(type(self.obj)((k, v) for k, v in self.items() if func(v, k, self._clean.obj)))
+
+        return self._wrap(type(self.obj)(v for k, v in self.items() if func(v, k, self._clean.obj)))
+
+
     def filter(self, func):
         """ Return all the elements that pass a truth test.
         """
@@ -367,7 +391,7 @@ class underscore(object):
             newlist = []
             for i, v in enumerate(self.obj):
                 # if v not in values:  # use indexof to check identity
-                if _(values).indexOf(v) is -1:
+                if _(values).indexOf(v) == -1:
                     newlist.append(v)
 
         return self._wrap(newlist)
@@ -756,7 +780,7 @@ class underscore(object):
         """
         keys = _.keys(self.obj)[0:n]
         res = [self.obj[x] for x in keys]
-        if len(res) is 1:
+        if len(res) == 1:
             res = res[0]
 
         #  keys = getattr(self.obj, 'keys', None)
@@ -784,7 +808,7 @@ class underscore(object):
         The **guard** check allows it to work with `_.map`.
         """
         res = self.obj[-n:]
-        if len(res) is 1:
+        if len(res) == 1:
             res = res[0]
         return self._wrap(res)
 
@@ -873,31 +897,19 @@ class underscore(object):
         # return self._wrap(ret)
     unique = uniq
 
-    def sum(self, iterator=None):
+    def sum(self, iterator=None, initial=0):
         """
         Add shit up -- todo
         """
-        ns = self.Namespace()
-        ns.results = []
-        ns.array = self.obj
-        initial = self.obj
-        if iterator is not None:
-            initial = _(ns.array).map(iterator)
 
         def by(memo, value, index):
-            if ((_.last(memo) != value or
-                 not len(memo)) if isSorted else not _.include(memo, value)):
-                memo.append(value)
-                ns.results.append(ns.array[index])
+            # lambda memo, value, index: memo + len(value), 0)
+            if callable(iterator):
+                return memo + iterator(value)
+            return memo + value
 
-            return memo
-
-        ret = _.reduce(initial, by)
+        ret = _.reduce(self.obj, by, initial)
         return self._wrap(ret)
-        # seen = set()
-        # seen_add = seen.add
-        # ret = [x for x in seq if x not in seen and not seen_add(x)]
-        # return self._wrap(ret)
 
     def union(self, *args):
         """
@@ -952,12 +964,22 @@ class underscore(object):
                 args[i].append(None)
         return self._wrap(zip(*args))
 
-    def zipObject(self, values = None):
+    def object(self, values=None, manyValues=None):
         """
         Zip together two arrays -- an array of keys and an array
         of values -- into a single object. Or pass a single array 
         of `[key, value]` (the reverse of `_.pairs`)
+
+        Aliased as `fromPairs` (lodash) and `zipObject`
+
+        @param manyValues bool: if True, input is `[key, value1, value2, ...]`
+        and output will be `{key: [value1, value2, ...]}`
         """
+        if _.isIntegral(values):
+            values, manyValues = manyValues, values
+        if manyValues:
+            return self.mapObject(lambda v, k, *a: (v[0], v[1:]))
+
         result = {}
         keys = self.obj
         if values:
@@ -972,6 +994,8 @@ class underscore(object):
                 result[k] = v;
 
         return self._wrap(result)
+
+    fromPairs = zipObject = object
 
     def indexOf(self, item, isSorted=False):
         """
@@ -1250,6 +1274,8 @@ class underscore(object):
 
     def pairs(self):
         """ Convert an object into a list of `[key, value]` pairs.
+
+        Aliased as `toPairs`.
         """
         keys = self._clean.keys()
         pairs = []
@@ -1257,6 +1283,8 @@ class underscore(object):
             pairs.append([key, self.obj[key]])
 
         return self._wrap(pairs)
+
+    toPairs = pairs
 
     def invert(self):
         """
@@ -1383,7 +1411,7 @@ class underscore(object):
         if self.obj is None:
             return True
         if self._clean.isString():
-            ret = self.obj.strip() is ""
+            ret = self.obj.strip() == ""
         elif self._clean.isDict():
             ret = len(self.obj.keys()) == 0
         else:
@@ -1430,6 +1458,23 @@ class underscore(object):
         """ Check if the given object is an int
         """
         return self._wrap(type(self.obj) is int)
+
+    def isIntegral(self):
+        """ Check if the given object is integral (from C++11)
+
+        Checks whether T is an integral type. Provides the member constant
+        value which is equal to true, if T is the type bool, char, char8_t
+        (since C++20), char16_t, char32_t, wchar_t, short, int, long, long
+        long, or any implementation-defined extended integer types, including
+        any signed, unsigned, and cv-qualified variants. Otherwise, value is
+        equal to false.
+        """
+        return self._wrap(isinstance(self.obj, (int,bool)))
+
+    def isNumeric(self):
+        """ Check if the given object is a number (float/int/bool)
+        """
+        return self._wrap(isinstance(self.obj, (int,bool,float)) or isinstance(self.obj, str) and re.match(r'^[0-9-+.eE]+$', self.obj))
 
     # :DEPRECATED: Python 2 only.
     # 3 removes this.
@@ -1595,6 +1640,13 @@ class underscore(object):
         """
         return self._wrap(hasattr(self.obj, key))
 
+    def hasCallable(self, key):
+        """
+        Shortcut function for checking if an object has a
+        given property that is callable
+        """
+        return self._wrap(callable(getattr(self.obj, key, None)))
+
     def get(self, key, _default=None):
         if callable(getattr(self.obj, 'get', None)):
             return self._wrap(self.obj.get(key, _default))
@@ -1604,15 +1656,15 @@ class underscore(object):
         """
         getmanyattr(object, name1[, name2 ,[name3 ,...]], default]) -> value
         
-        Get a name attributes from an object; getmanyattr(x, 'y', 'z', None) is
-        equivalent to [x.y, x.z].  The default argument it is returned when the
+        Get many named attributes from an object; getmanyattr(x, 'y', 'z', None) is
+        equivalent to [x.y, x.z].  The default argument (None) is returned when the
         attribute doesn't exist.
         """
         default = args[-1]
         return self._wrap([getattr(self.obj, key, default) for key in args[0:-1]])
 
     def isDictlike(self):
-        return self._wrap(_.all(_.getmanyattr(self.obj, 'values', 'keys', 'get', None), lambda x, *a: callable(x)))
+        return self._wrap(_.all(_.getmanyattr(self.obj, 'items', 'values', 'keys', 'get', None), lambda x, *a: callable(x)))
 
     def isListlike(self):
         return self._wrap(_.all(_.getmanyattr(self.obj, 'append', 'remove', '__len__', None), lambda x, *a: callable(x)))
@@ -1662,7 +1714,7 @@ class underscore(object):
         """
         n = self.obj
         i = 0
-        while n is not 0:
+        while n != 0:
             n -= 1
             func(i)
             i += 1
@@ -1737,7 +1789,7 @@ class underscore(object):
 
         for i, k in enumerate(self._html_escape_table):
             v = self._html_escape_table[k]
-            if k is not "&":
+            if k != "&":
                 self.obj = self.obj.replace(k, v)
 
         return self._wrap(self.obj)
@@ -1940,10 +1992,12 @@ class underscore(object):
         p = lambda value: inspect.ismethod(value) or inspect.isfunction(value)
         for eachMethod in inspect.getmembers(underscore, predicate=p):
             m = eachMethod[0]
+            m1 = eachMethod[1]
             d = eachMethod[1].__doc__
             if not hasattr(_, m):
                 def caller(a):
                     def execute(*args):
+                        r = None
                         if len(args) == 1:
                             r = getattr(underscore(args[0]), a)()
                         elif len(args) > 1:
@@ -1951,8 +2005,14 @@ class underscore(object):
                             r = getattr(underscore(args[0]), a)(*rargs)
                         else:
                             r = getattr(underscore([]), a)()
+                        if r is None:
+                            print("makeStatic: failed: {}".format(m))
                         return r
-                    execute.__doc__ = d
+                    execute.__doc__ = "{}{}\n\n{}".format(
+                            m,
+                            inspect.signature(m1),
+                            d
+                            )
                     return execute
                     
                
