@@ -17,18 +17,77 @@ from collections import Sequence
 import six
 from six.moves import builtins
 
+def oget(obj, key, default=None, call=False):
+    """Get attribute or dictionary value of object
+    Parameters
+    ----------
+    obj : object
+        container with optional dict-like properties
+    key : str
+        key
+    default : any
+        value to return on failure
+    call : bool
+        call attr if callable
+
+    Returns
+    -------
+    any
+        similar to obj[key] or getattr(obj, key)
+
+    See Also
+    --------
+    dotted : creates `path` from dotted string
+    deep_get : uses `oget` to traverse deeply nested objects
+
+    Examples
+    --------
+    >>> oget(sys.modules, '__main__')
+    <module '__main__' (built-in)>
+    >>> oget(sys.modules['__main__'], 'oget')
+    <function oget at 0x000001A9A1920378>
+    """
+    if not isinstance(key, str):
+        raise TypeError("oget(): attribute ('{}') name must be string".format(key))
+    r = None
+
+    if isinstance(obj, dict):
+        return obj.get(key, default)
+    try:
+        r = obj[key] if key in obj else getattr(obj, key, default)
+    except TypeError:
+        # TypeError: 'module' object is not subscriptable
+        r = getattr(obj, key, default)
+
+    if call and callable(r):
+        r = r()
+
+    return r
+
 # https://stackoverflow.com/questions/42095393/python-map-a-function-over-recursive-iterables
-def recursive_map(seq, func):
+def _recursive_map(seq, func):
     for item in seq:
         if isinstance(item, Sequence):
-            yield type(item)(recursive_map(item, func))
+            yield type(item)(_recursive_map(item, func))
         else:
             yield func(item)
+
+def _recursive_obj_map(seq, func):
+    for key, item in _.items(seq):
+        if isinstance(item, Sequence):
+            yield key, type(item)(_recursive_map(item, func))
+        elif isinstance(item, Collection):
+            yield key, type(item)(_recursive_map(item, func))
+        else:
+            yield func(item)
+
+def _recursive_obj_map_wrapper(seq, func):
+    return type(seq)(next(_recursive_obj_map(seq, func)))
 
 
 def _makeSequenceMapper(f):
     def fmap(seq, iteratee):
-        return recursive_map(seq, iteratee)
+        return _recursive_map(seq, iteratee)
     def function(item):
         if str(type(item)) == "<class 'generator'>":
             return [f(x) for x in item]
@@ -37,7 +96,25 @@ def _makeSequenceMapper(f):
         return [f(item)]
     return function
 
-_asList = _makeSequenceMapper(lambda x: x)
+# An iterable object is an object that implements __iter__, which is expected
+# to return an iterator object.
+def _isIterable(o):
+    return hasattr(o, '__iter__') and not hasattr(o, 'ljust')
+
+
+
+__asList = _makeSequenceMapper(lambda x: x)
+def _asList(o):
+    l = []
+    if _isIterable(o):
+        l = [x for x in o]
+    else:
+        l = __asList(o)
+
+    if not isinstance(l, list) or len(l) == 1 and l[0] == o:
+        return [o]
+    return l
+
 
 def Array(o):
     if o is None:
@@ -47,7 +124,7 @@ def Array(o):
     else:
         return list([o])
 
-def xrefs_to(ea, types=None):
+def _us_xrefs_to(ea, types=None):
 
     if types is None:
         types = [ idc.fl_CF,
@@ -213,6 +290,53 @@ class underscore(object):
         else:
             return val
 
+    def _oget(self, obj, key, default=None, call=False):
+        return oget(obj, key, default=default, call=call)
+        """Get attribute or dictionary value of object
+        Parameters
+        ----------
+        obj : object
+            container with optional dict-like properties
+        key : str
+            key
+        default : any
+            value to return on failure
+        call : bool
+            call attr if callable
+
+        Returns
+        -------
+        any
+            similar to obj[key] or getattr(obj, key)
+
+        See Also
+        --------
+        dotted : creates `path` from dotted string
+        deep_get : uses `oget` to traverse deeply nested objects
+
+        Examples
+        --------
+        >>> oget(sys.modules, '__main__')
+        <module '__main__' (built-in)>
+        >>> oget(sys.modules['__main__'], 'oget')
+        <function oget at 0x000001A9A1920378>
+        """
+        if not isString(key):
+            raise TypeError("oget(): attribute ('{}') name must be string".format(key))
+        r = None
+        try:
+            r = obj[key] if key in obj else default
+        except TypeError:
+            # TypeError: 'module' object is not subscriptable
+            r = getattr(obj, key, default)
+
+        if call and callable(r):
+            r = r()
+
+        return r
+
+
+
     """
     Collection Functions
     """
@@ -329,6 +453,12 @@ class underscore(object):
         return self._wrap(self.ftmp)
     detect = find
 
+    def findKey(self, predicate):
+        keys = self._clean.keys()
+        for key in keys:
+            if predicate(self.obj[key], key, self.obj):
+                return self._wrap(key)
+
     def filterObject(self, func):
         """ Return all the items that pass a truth test
         """
@@ -342,10 +472,11 @@ class underscore(object):
         return self._wrap(type(self.obj)(v for k, v in self.items() if func(v, k, self._clean.obj)))
 
 
-    def filter(self, func):
+    def filter(self, func=lambda x, *a: not not x):
         """ Return all the elements that pass a truth test.
         """
         return self._wrap(list(filter(func, self.obj)))
+
     select = filter
 
     def remove(self, func):
@@ -423,11 +554,9 @@ class underscore(object):
         """
         return self._wrap(list(filter(lambda val: not func(val), self.obj)))
 
-    def all(self, func=None):
+    def all(self, func=lambda x, *a: not not x):
         """ Determine whether all of the elements match a truth test.
         """
-        if func is None:
-            func = lambda x, *args: x
         self.altmp = True
 
         def testEach(value, index, *args):
@@ -450,17 +579,15 @@ class underscore(object):
         
 
 
-    def any(self, func=None):
+    def any(self, func=lambda x, *a: not not x):
         """
         Determine if at least one element in the object
         matches a truth test.
         """
-        if func is None:
-            func = lambda x, *args: x
         self.antmp = False
 
         def testEach(value, index, *args):
-            if func(value, index, *args) is True:
+            if func(value, index, *args):
                 self.antmp = True
                 return "breaker"
 
@@ -470,13 +597,15 @@ class underscore(object):
 
     def include(self, target):
         """
-        Determine if a given value is included in the
+        Determine if a given value(s) is included in the
         array or object using `is`.
         """
+        target = _asList(target)
+
         if self._clean.isDict():
-            return self._wrap(target in self.obj.values())
+            return self._wrap(_.any(target, lambda x, *a: x in self.obj.values()))
         else:
-            return self._wrap(target in self.obj)
+            return self._wrap(_.any(target, lambda x, *a: x in self.obj))
     contains = include
 
     def invoke(self, method, *args):
@@ -504,7 +633,16 @@ class underscore(object):
         if _.isInt(key):
             return list(list(zip(*self.obj))[key])
 
-        return self._wrap([x.get(key) for x in self.obj])
+        if _.isList(key) or _.isTuple(key) and len(key) == 2:
+            r1 = []
+            for x in self.obj:
+                r2 = []
+                for _key in key:
+                    r2.append(self._oget(x, _key, call=1))
+                r1.append(tuple(r2))
+            return(r1) 
+
+        return self._wrap([self._oget(x, key, call=1) for x in self.obj])
 
     def re_findall(self, pattern, flags=0):
         """
@@ -539,7 +677,7 @@ class underscore(object):
         return self._wrap([str(idaapi.decompile(get_ea_by_any(e), hf=None, flags=idaapi.DECOMP_WARNINGS)) for e in self.obj])
 
     def ida_xrefs_to(self):
-        return self._wrap([xrefs_to(get_ea_by_any(e)) for e in self.obj])
+        return self._wrap([_us_xrefs_to(get_ea_by_any(e)) for e in self.obj])
 
     def ida_all_xrefs_from(self):
         def iter(x):
@@ -1666,8 +1804,12 @@ class underscore(object):
     def isDictlike(self):
         return self._wrap(_.all(_.getmanyattr(self.obj, 'items', 'values', 'keys', 'get', None), lambda x, *a: callable(x)))
 
+    @staticmethod
+    def _isListlike(obj):
+        return _.all(_.getmanyattr(obj, 'append', 'remove', '__len__', None), lambda x, *a: callable(x))
+
     def isListlike(self):
-        return self._wrap(_.all(_.getmanyattr(self.obj, 'append', 'remove', '__len__', None), lambda x, *a: callable(x)))
+        return self._wrap(self._isListlike(self.obj))
 
     def join(self, glue=" "):
         """ Javascript's join implementation
