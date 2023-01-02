@@ -20,7 +20,7 @@ setup(
     ],
     python_requires=">=3.7",
     packages=find_packages(),
-    install_requires=["six>1.16"]
+    install_requires=["six>=1.16.0"]
 
 )
 
