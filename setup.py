@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION="0.0.5"
+VERSION="0.0.7"
 with open("README.rst", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 setup(
@@ -15,12 +15,12 @@ setup(
     description='TBA',
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 2",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=2.7",
+    python_requires=">=3.7",
     packages=find_packages(),
-    install_requires=[],
+    install_requires=["six>1.16"]
+
 )
 
