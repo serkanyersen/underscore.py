@@ -7,33 +7,37 @@
       \/___/  \/_/\/_/\/__,_ /\/____/ \/_/ \/___/  \/____/\/___/  \/_/ \/____/\/_/\ \ \/  `/___/> \
                                                                                    \ \_\     /\___/
                                                                                     \/_/     \/__/
+                                                                                    
+This is an update for python3 of: github.com/serkanyersen/underscore3.py.git
 
-Underscore.py is a python port of excellent javascript library underscore.js
 
-**What is underscore.js?**
+---
 
-    From underscore page: Underscore.js is a utility-belt library for JavaScript that provides support for the
+
+Underscore.py is a python port of excellent javascript library underscore3.js
+
+**What is underscore3.js?**
+
+    From underscore3 page: Underscore.js is a utility-belt library for JavaScript that provides support for the
     usual functional suspects (each, map, reduce, filter...) without extending any core JavaScript objects.
 
-NOTE: It's obvious that python already has nearly all features of underscore library built-in. I'm not trying to fill any gap in python. If you are coming from JavaScript this library will provide you a familiar interface, a set of tools you already know how to use and micro templating functionality. Use it wisely and try to use built-in functions wherever possible.
-
-[![Build Status](https://travis-ci.org/serkanyersen/underscore.py.png?branch=master)](https://travis-ci.org/serkanyersen/underscore.py)
+NOTE: It's obvious that python already has nearly all features of underscore3 library built-in. I'm not trying to fill any gap in python. If you are coming from JavaScript this library will provide you a familiar interface, a set of tools you already know how to use and micro templating functionality. Use it wisely and try to use built-in functions wherever possible.
 
 ## Installing
 
 Install from pypi
 ```bash
-pip install underscore.py
+pip install underscore3.py
 ```
 **or**
 
 Clone the repository:
 ```bash
-git clone git://github.com/serkanyersen/underscore.py.git
+git clone git://github.com/serkanyersen/underscore3.py.git
 ```
-Get into underscore.py directory
+Get into underscore3.py directory
 ```bash
-cd underscore.py
+cd underscore3.py
 ```
 Run setup script
 ```bash
@@ -42,13 +46,13 @@ sudo python setup.py install
 That's it
 
 ## Usage
-Import underscore to your project
+Import underscore3 to your project
 ```python
-from underscore import _
+from underscore3 import _
 ```
 or if you don't want to mess with _ variable
 ```python
-from underscore import _ as us  # You can use any name you want, __ or u
+from underscore3 import _ as us  # You can use any name you want, __ or u
 ```
 
 ## Use it just like javascript version
@@ -94,11 +98,11 @@ Output
     Last Name: BROWN
     E-mail: james@brown.net
 
-For more information and documentation [underscorejs.org](http://underscorejs.org)
+For more information and documentation [underscore3js.org](http://underscore3js.org)
 
-Original Source: [Underscore.js on Github](https://github.com/documentcloud/underscore)
+Original Source: [Underscore.js on Github](https://github.com/documentcloud/underscore3)
 
 ### Disclaimer
 Please keep in mind that this is a direct port of a javascript library, so don't get started with
 the "but it's not pythonic" stuff. This library has no intentions to be pythonic, infact it tries to
-bring the same underscore experience from javascript to python
+bring the same underscore3 experience from javascript to python

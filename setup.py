@@ -1,13 +1,26 @@
-#!/usr/bin/env python
+from setuptools import setup, find_packages
 
-from distutils.core import setup
+VERSION="0.0.9"
+with open("README.rst", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+setup(
+    name='underscore3',
+    version=VERSION,
+    url='https://github.com/sfinktah/underscore3',
+    long_description=long_description,
+    long_description_content_type="text/x-rst",
+    license='MIT',
+    author='Christopher Anderson',
+    author_email='sfinktah@github.spamtrak.org',
+    description='TBA',
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
+    python_requires=">=3.7",
+    packages=find_packages(),
+    install_requires=["six>=1.16.0"]
 
-setup(name='underscore.py',
-      version='0.1.6',
-      description='Port of underscore.js into python',
-      author='Serkan Yersen',
-      author_email='serkanyersen@gmail.com',
-      url='https://github.com/serkanyersen/underscore.py/',
-      packages=['underscore'],
-      package_dir={'underscore': 'src'}
-      )
+)
+
